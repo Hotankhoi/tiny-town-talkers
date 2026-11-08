@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tiny Town Talkers</title>
+<!--
+  TINY TOWN TALKERS – BẢN THỬ (Bản cuối – Giai đoạn 4)
+  Một file duy nhất: HTML (cấu trúc) + CSS (giao diện) + JavaScript (luật chơi).
+  Mở trực tiếp bằng trình duyệt là chạy, không cần cài đặt.
+-->
+<!-- Thư viện tạo mã QR (chỉ dùng ở trang In thẻ). "async" = không làm chậm lúc mở game; mất mạng thì game vẫn chạy. -->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+/* =========================================================
+   1. MÀU SẮC & THIẾT LẬP CHUNG
+   Màu của từng loại khối từ đặt ở đây để dễ đổi.
+   ========================================================= */
+:root{
+  --blue:#3b82f6;   /* Người */
+  --red:#ef4444;    /* Hành động */
+  --yellow:#fbbf24; /* Số lượng / tính chất */
+  --green:#22c55e;  /* Đồ vật */
+  --purple:#a855f7; /* Lịch sự */
+  --ink:#4a3424;
+  --paper:#fff8ec;
+  --wall:#ffe3b8;
+  --floor:#e7b47a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:#f6d9ad;color:var(--ink);
+  font-family:ui-rounded,"Segoe UI Rounded","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  overflow:hidden;               /* không cuộn trang */
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;     /* bỏ độ trễ chạm đôi để phóng to */
+}
+/* Khung game: rộng tối đa 1200px, căn giữa, cao đúng bằng màn hình */
+#app{
+  position:relative;max-width:1200px;margin:0 auto;
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--paper);box-shadow:0 0 40px rgba(0,0,0,.12);overflow:hidden;
+}
+.hidden{display:none!important}
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.active{display:flex}
+
+/* =========================================================
+   2. NÚT BẤM (tối thiểu 64x64px, chỉ dùng biểu tượng)
+   ========================================================= */
+.icon-btn{
+  min-width:64px;min-height:64px;padding:0 10px;border:none;border-radius:20px;
+  background:#fff;font-size:32px;line-height:1;cursor:pointer;color:var(--ink);
+  box-shadow:0 5px 0 rgba(0,0,0,.15);transition:transform .1s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.icon-btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.icon-btn:focus-visible,.block:focus-visible{outline:4px solid #2563eb;outline-offset:3px}
+/* Nhấp nháy nhẹ để dẫn sự chú ý của bé */
+.blink{animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{
+  0%,100%{transform:scale(1);box-shadow:0 5px 0 rgba(0,0,0,.15),0 0 0 0 rgba(255,190,0,.0)}
+  50%{transform:scale(1.07);box-shadow:0 5px 0 rgba(0,0,0,.15),0 0 0 10px rgba(255,190,0,.35)}
+}
+.big-play{min-width:140px;min-height:140px;font-size:72px;border-radius:40px;background:#4ade80;color:#fff}
+
+/* =========================================================
+   3. MÀN HÌNH CHÍNH
+   ========================================================= */
+#screen-home{align-items:center;justify-content:center;gap:24px;padding:24px;text-align:center;
+  background:linear-gradient(#bfe6ff 0 55%,#a7e3a1 55% 100%)}
+.logo{font-size:clamp(64px,14vw,120px);line-height:1}
+.title{font-size:clamp(26px,5vw,44px);font-weight:900;margin:0;color:#7c2d12;text-shadow:0 3px 0 #fff}
+
+/* =========================================================
+   4. MÀN HÌNH CHƠI – bố cục co giãn
+   Dọc (điện thoại): trên = nhân vật, giữa = thanh câu, dưới = khay.
+   Ngang / rộng ≥ 900px: trái = nhân vật, phải = thanh câu + khay.
+   ========================================================= */
+#screen-play{
+  display:none;
+  grid-template-columns:1fr;
+  grid-template-rows:auto auto auto auto minmax(0,1fr);
+  grid-template-areas:"top" "scene" "bar" "coplay" "tray";
+  gap:8px;padding:8px;
+}
+#screen-play.active{display:grid}
+@media (min-width:900px), (orientation:landscape) and (min-width:600px){
+  #screen-play{
+    grid-template-columns:minmax(0,5fr) minmax(0,7fr);
+    grid-template-rows:auto auto auto minmax(0,1fr);
+    grid-template-areas:"top top" "scene bar" "scene coplay" "scene tray";
+  }
+  .scene{height:auto!important}
+  .char{font-size:clamp(70px,17vh,150px)}
+  .char.friend{font-size:clamp(56px,13vh,120px)}
+  .table{height:clamp(50px,12vh,110px)}
+  .fx-item{font-size:64px}
+}
+.topbar{grid-area:top;display:flex;align-items:center;gap:8px}
+.topbar .spacer{flex:1}
+.star-counter{min-height:64px;padding:0 16px;border-radius:20px;background:#fff7c2;font-size:30px;font-weight:900;
+  display:flex;align-items:center;gap:6px;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.star-counter.bump{animation:bump .5s}
+@keyframes bump{50%{transform:scale(1.25)}}
+
+/* --- Khung cảnh nhà hàng --- */
+.scene{
+  grid-area:scene;position:relative;border-radius:24px;overflow:hidden;
+  height:clamp(160px,28vh,280px);
+  background:
+    linear-gradient(transparent 0 68%,var(--floor) 68% 100%),
+    repeating-linear-gradient(90deg,var(--wall) 0 40px,#ffd9a0 40px 80px);
+  display:flex;flex-direction:column;padding:8px;
+}
+.bubble{
+  position:relative;z-index:2;background:#fff;border-radius:22px;padding:6px 6px 6px 12px;
+  display:flex;align-items:center;gap:6px;box-shadow:0 4px 0 rgba(0,0,0,.1);min-height:76px;
+}
+.bubble::after{content:"";position:absolute;left:34px;bottom:-14px;border:10px solid transparent;border-top:14px solid #fff;border-bottom:0}
+.bubble .who{font-size:34px}
+.bubble-text{flex:1;min-width:0;font-size:clamp(16px,2.2vw,22px);font-weight:700;line-height:1.2}
+.bubble-pic{font-size:40px;white-space:nowrap}
+.stage{flex:1;display:flex;align-items:flex-end;justify-content:space-around;position:relative;min-height:0}
+.char{position:relative;font-size:clamp(60px,10vh,130px);line-height:1;transition:transform .2s}
+.char .wear{position:absolute;inset:0;pointer-events:none}
+.table{position:relative;width:34%;height:clamp(40px,8vh,70px);background:#a0522d;border-radius:12px 12px 4px 4px;
+  box-shadow:inset 0 -8px 0 rgba(0,0,0,.2);display:flex;justify-content:center}
+.plate{position:absolute;top:-34px;min-width:76px;height:40px;border-radius:50%;background:#fff;
+  box-shadow:0 3px 0 #ccc;display:flex;align-items:flex-end;justify-content:center;font-size:44px;line-height:1}
+.plate span{transform:translateY(-12px)}
+.jump{animation:jump .6s ease 2}
+@keyframes jump{30%{transform:translateY(-30px)}60%{transform:translateY(0)}}
+.think{animation:tilt .8s ease}
+@keyframes tilt{30%{transform:rotate(-10deg)}70%{transform:rotate(8deg)}}
+.served{animation:serve .5s ease}
+@keyframes serve{from{transform:translateY(-80px) scale(.3);opacity:0}}
+
+/* --- Thanh câu --- */
+.bar-wrap{grid-area:bar;display:flex;align-items:center;gap:8px;background:#fff;border-radius:24px;padding:8px;
+  border:4px dashed #e6c99a;align-self:start}
+.bar{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;min-height:80px;padding-top:8px}
+.bar.reading .block{animation:glow .8s ease-in-out infinite alternate}
+@keyframes glow{to{filter:brightness(1.25)}}
+.bar-buttons{display:flex;flex-direction:column;gap:8px}
+.big-say{min-width:84px;min-height:84px;font-size:46px;border-radius:50%;background:#e5e7eb;opacity:.55}
+.big-say.ready{background:#fde047;opacity:1;animation:blink 1.2s ease-in-out infinite}
+
+/* --- Khay khối từ --- */
+.tray{grid-area:tray;min-height:0;overflow-y:auto;display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;
+  gap:16px 12px;padding:16px 8px 8px;background:#f3e2c4;border-radius:24px}
+
+/* =========================================================
+   5. KHỐI TỪ MÀU – mỗi loại một màu và một hình viền riêng
+   ========================================================= */
+.block{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-width:64px;min-height:64px;padding:6px 18px;border:none;margin:0;
+  font:inherit;font-size:26px;font-weight:900;color:#fff;cursor:pointer;
+  touch-action:none;   /* để kéo thả bằng tay không làm cuộn trang */
+  text-shadow:0 2px 0 rgba(0,0,0,.25);
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.35);
+  transition:transform .15s,opacity .2s;white-space:nowrap;
+}
+.block .emoji{font-size:34px;text-shadow:none}
+/* Xanh dương = Người: đầu tròn bên trái */
+.cat-person{background:var(--blue);border-radius:32px 12px 12px 32px}
+/* Đỏ = Hành động: hình mũi tên chỉ sang phải */
+.cat-action{background:var(--red);padding-right:30px;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%)}
+/* Vàng = Số lượng/tính chất: hình lục giác */
+.cat-modifier{background:var(--yellow);color:#5b3600;text-shadow:none;padding:6px 26px;
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,16px 100%,0 50%)}
+/* Xanh lá = Đồ vật: viên gạch Lego có 2 núm */
+.cat-thing{background:var(--green);border-radius:12px}
+.cat-thing::before,.cat-thing::after{content:"";position:absolute;top:-9px;width:20px;height:10px;border-radius:6px 6px 0 0;background:var(--green)}
+.cat-thing::before{left:22%}.cat-thing::after{right:22%}
+/* Tím = Lịch sự: hình viên thuốc tròn */
+.cat-polite{background:var(--purple);border-radius:999px}
+
+/* Rê chuột trên máy tính: khối phóng to nhẹ, con trỏ bàn tay */
+@media (hover:hover) and (pointer:fine){
+  .block:hover{transform:scale(1.08)}
+}
+.block.used{opacity:0;pointer-events:none}          /* khối đã lên thanh câu: để trống chỗ trong khay */
+.block.bounce{animation:bounce .45s}
+@keyframes bounce{40%{transform:translateY(-14px) scale(1.06)}70%{transform:translateY(2px)}}
+.block.wiggle{animation:wiggle .45s}
+@keyframes wiggle{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.block.pop{animation:pop .3s}
+@keyframes pop{from{transform:scale(.4)}}
+/* Ô trống trong thanh câu: cùng hình, màu nhạt */
+.block.ghost{opacity:.3;cursor:default;box-shadow:none}
+.block.ghost.next{opacity:.55;animation:slotPulse 1.2s ease-in-out infinite}
+.block.ghost.drop-ok{opacity:.9}
+@keyframes slotPulse{50%{transform:scale(1.08);opacity:.85}}
+/* Khối đang được kéo theo ngón tay / chuột */
+.drag-ghost{position:fixed;z-index:100;pointer-events:none;transform:scale(1.12) rotate(-3deg);opacity:.92;cursor:grabbing}
+
+/* Ngôi sao bay vào góc */
+.flying-star{position:fixed;z-index:90;font-size:60px;margin:-30px 0 0 -30px;pointer-events:none;
+  transition:transform 1s cubic-bezier(.4,-0.3,.6,1)}
+
+/* --- Nút chọn vai ở màn hình chính --- */
+.roles{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.role-btn{min-width:150px;min-height:150px;border:none;border-radius:36px;background:#fff;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 0 rgba(0,0,0,.15);font:inherit}
+.role-pic{font-size:60px;line-height:1}
+.role-play{font-size:36px;color:#16a34a}
+#btnRoleWaiter{background:#fff1d6}
+
+/* --- Màn hình kết thúc ca --- */
+#screen-end{align-items:center;justify-content:center;gap:20px;text-align:center;background:radial-gradient(#fff7c2,#ffd98a)}
+.end-party{font-size:110px;animation:jump .8s ease 3}
+.end-stars{font-size:72px;min-height:80px;letter-spacing:6px}
+.end-buttons{display:flex;gap:24px;align-items:center}
+
+/* --- Hoạt cảnh hài hước (lớp #fx phủ lên khung cảnh) --- */
+.fx{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}
+.fx-item{position:absolute;font-size:46px;line-height:1;transform:translate(-50%,-50%)}
+.on-head{animation:onHead .7s cubic-bezier(.3,1.6,.6,1) forwards}         /* rơi xuống đội lên đầu */
+@keyframes onHead{from{transform:translate(-50%,-260%) rotate(-40deg)}to{transform:translate(-50%,-20%) rotate(-12deg)}}
+.cat-jump{animation:catJump 1.6s ease-in forwards}                          /* mèo nhảy khỏi đĩa */
+@keyframes catJump{0%{transform:translate(-50%,-50%)}25%{transform:translate(-50%,-160%) scale(1.2)}
+  60%{transform:translate(120%,-90%) rotate(20deg)}100%{transform:translate(600%,40%) rotate(40deg)}}
+.ball-bounce{animation:ballBounce 1.8s linear forwards}                     /* bóng nảy ra ngoài */
+@keyframes ballBounce{0%{transform:translate(-50%,-50%)}15%{transform:translate(0,-220%) rotate(90deg)}
+  30%{transform:translate(60%,0) rotate(180deg)}45%{transform:translate(140%,-150%) rotate(270deg)}
+  60%{transform:translate(220%,0) rotate(360deg)}100%{transform:translate(900%,-400%) rotate(720deg)}}
+.pop-up{font-size:52px;animation:popUp .5s cubic-bezier(.3,1.6,.6,1) forwards}
+@keyframes popUp{from{transform:translate(-50%,-50%) scale(0)}to{transform:translate(-50%,-110%) scale(1)}}
+.on-plate{font-size:44px;animation:serve .5s ease}
+.shake{animation:shake .6s ease 2}
+@keyframes shake{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.char.friend{font-size:clamp(48px,8vh,100px)}
+
+/* --- Thanh trên của màn hình chính --- */
+.home-top{position:absolute;top:12px;left:12px;right:12px}
+#screen-home,#screen-lock{position:relative}
+
+/* --- Rồng con --- */
+.dragon-box{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.75);border-radius:28px;padding:8px 18px}
+.dragon-wrap{position:relative;display:inline-block;font-size:72px;line-height:1}
+.dragon-wrap .blanket,.dragon-wrap .zzz{display:none}
+/* Rồng "trùm chăn ngủ": tấm chăn sọc phủ nửa dưới + 💤 */
+.dragon-wrap.sleeping .blanket{display:block;position:absolute;left:-8%;right:-8%;bottom:-6%;height:58%;border-radius:40% 40% 14px 14px;
+  background:repeating-linear-gradient(45deg,#93c5fd 0 10px,#bfdbfe 10px 20px);box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.dragon-wrap.sleeping .zzz{display:block;position:absolute;right:-30%;top:-25%;font-size:.5em;animation:zzz 2s ease-in-out infinite}
+@keyframes zzz{50%{transform:translateY(-10px);opacity:.5}}
+.dragon-wrap.fed .dragon{display:inline-block;animation:jump .7s ease 3}
+.dragon-wrap.big{font-size:140px}
+.sun-info{display:flex;flex-direction:column;align-items:flex-start;font-size:30px;font-weight:900}
+.wake-hint{font-size:28px}
+
+/* --- Màn hình kết thúc: rồng nhận giọt nắng --- */
+.end-dragon{display:flex;align-items:center;gap:10px;font-size:56px;min-height:72px}
+.sun-fly{display:inline-block;animation:sunFly 1.2s ease-in forwards}
+@keyframes sunFly{from{transform:translate(-120px,-80px) scale(1.5)}to{transform:translate(0,0) scale(.7)}}
+
+/* --- Tủ đồ --- */
+#screen-wardrobe{align-items:center;justify-content:center;gap:28px;padding:20px;background:linear-gradient(#ffe8f0,#fff3d6)}
+.ward-avatar{position:relative;font-size:150px;line-height:1;margin-top:40px}
+.ward-items{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.ward-item{width:110px;height:110px;border:none;border-radius:28px;background:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.12);padding:14px}
+.ward-item svg{width:100%;height:100%}
+.ward-item.on{background:#bbf7d0;box-shadow:0 6px 0 #16a34a}
+/* Đồ mặc trên nhân vật (dùng chung cho Tủ đồ và màn chơi) */
+.wear svg{position:absolute}
+.wear .w-chef-hat{width:72%;left:14%;top:-46%}
+.wear .w-apron{width:40%;left:30%;bottom:-34%}
+#player{margin-bottom:.24em}
+.ward-avatar{margin-bottom:.3em}
+.wear .w-menu{width:42%;right:-30%;bottom:-6%;transform:rotate(12deg)}
+
+/* --- Hết giờ --- */
+#screen-lock{align-items:center;justify-content:center;gap:10px;background:linear-gradient(#1e1b4b,#4338ca);color:#fff}
+.lock-moon{font-size:90px}
+#screen-lock .dragon-wrap .dragon{display:inline-block;animation:yawn 3s ease-in-out infinite}
+@keyframes yawn{50%{transform:scale(1.06) rotate(-4deg)}}
+
+/* --- Gợi ý cho ba mẹ --- */
+.coplay{grid-area:coplay;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;background:#ecfccb;border-radius:18px;
+  padding:6px 10px;font-size:17px;line-height:1.3}
+.coplay i{font-style:normal;font-weight:800;color:#166534}
+.co-btn{min-width:64px;min-height:64px;font-size:26px}
+
+/* --- Khu phụ huynh & cổng phụ huynh (có chữ cho người lớn) --- */
+#screen-parent{background:#f8fafc;padding:10px;gap:10px}
+.parent-title{margin:0;font-size:26px}
+.parent-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px;user-select:text;-webkit-user-select:text}
+.p-card{background:#fff;border-radius:18px;padding:14px 18px;box-shadow:0 2px 8px rgba(0,0,0,.08);font-size:18px}
+.p-card h3{margin:0 0 8px;font-size:22px}
+.p-card.warn{background:#fef3c7;border:3px solid #f59e0b;font-weight:700}
+.report{margin:0 0 10px;padding-left:20px;line-height:1.7}
+.p-label{font-weight:800;margin:8px 0}
+.words-used{display:flex;flex-wrap:wrap;gap:12px 8px;padding-top:6px}
+.words-used .block{min-height:48px;min-width:48px;font-size:20px;cursor:default;pointer-events:none}
+.words-used .block .emoji{font-size:24px}
+.words-used .count{font-size:15px;opacity:.9}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg-btn,.danger-btn,.p-btn{min-height:64px;min-width:64px;padding:0 18px;border-radius:16px;border:3px solid #cbd5e1;background:#fff;font:inherit;font-size:18px;font-weight:800;cursor:pointer}
+.seg-btn.on{background:#22c55e;border-color:#16a34a;color:#fff}
+.danger-btn{border-color:#ef4444;color:#b91c1c}
+.p-btn{border-color:#3b82f6;color:#1d4ed8}
+.toggle{display:flex;align-items:center;gap:12px;margin-top:14px;min-height:64px;cursor:pointer}
+.toggle input{width:36px;height:36px;accent-color:#22c55e}
+.p-note{font-size:15px;color:#64748b;margin:0 4px 12px}
+.modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
+.gate-box{background:#fff;border-radius:28px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:360px;width:100%}
+.gate-q{font-size:34px;font-weight:900}
+.gate-ans{font-size:34px;font-weight:900;min-width:120px;text-align:center;border-bottom:4px solid #cbd5e1}
+.gate-ans.shake{animation:wiggle .4s}
+.keypad{display:grid;grid-template-columns:repeat(3,72px);gap:8px}
+.keypad button{min-height:64px;font-size:28px;font-weight:900;border-radius:16px;border:none;background:#e2e8f0;cursor:pointer;font-family:inherit}
+
+/* --- Mở từ thẻ QR --- */
+#screen-card{align-items:center;justify-content:center;gap:30px;background:radial-gradient(#fff,#ffe7b3)}
+.card-show .block{font-size:44px;min-height:110px;padding:14px 40px}
+.card-show .block .emoji{font-size:60px}
+
+/* --- Quét thẻ bằng webcam --- */
+.scan-box{background:#fff;border-radius:28px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(480px,100%)}
+.qr-reader{width:100%;min-height:200px;border-radius:16px;overflow:hidden;background:#111}
+.qr-reader video{width:100%!important;height:auto!important;display:block}
+.scan-msg{font-size:34px}
+
+/* --- Trang in thẻ --- */
+#screen-print{background:#e2e8f0}
+.print-toolbar{padding:8px;flex-wrap:wrap}
+.print-help{font-size:15px;max-width:640px;user-select:text;-webkit-user-select:text}
+.print-scroll{flex:1;overflow:auto;padding:10px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;max-width:900px;margin:0 auto}
+.card{background:#fff;border:7px solid;border-radius:18px;padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  aspect-ratio:60/86;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.card .c-emoji{font-size:56px;line-height:1.1}
+.card .c-word{font-size:30px;font-weight:900;padding:4px 14px;border-radius:12px;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.card .c-qr{width:58%}
+.card .c-qr svg,.card .c-qr img{width:100%;height:auto;display:block}
+.card .c-noqr{font-size:12px;color:#64748b}
+.card.cat-person{border-color:var(--blue)}   .card.cat-person .c-word{background:var(--blue)}
+.card.cat-action{border-color:var(--red)}    .card.cat-action .c-word{background:var(--red)}
+.card.cat-modifier{border-color:var(--yellow)} .card.cat-modifier .c-word{background:var(--yellow);color:#5b3600}
+.card.cat-thing{border-color:var(--green)}   .card.cat-thing .c-word{background:var(--green)}
+.card.cat-polite{border-color:var(--purple)} .card.cat-polite .c-word{background:var(--purple)}
+/* Khi in: chỉ in lưới thẻ, 3 cột × 3 hàng mỗi trang A4 */
+@media print{
+  @page{size:A4;margin:10mm}
+  html,body{height:auto;overflow:visible;background:#fff}
+  #app{height:auto;max-width:none;box-shadow:none;overflow:visible;display:block}
+  .screen{display:none!important}
+  #screen-print{display:block!important;background:#fff}
+  .print-toolbar,.modal{display:none!important}
+  .print-scroll{overflow:visible;padding:0}
+  .card-grid{grid-template-columns:repeat(3,60mm);gap:4mm;justify-content:center;max-width:none}
+  .card{width:60mm;height:86mm;aspect-ratio:auto;break-inside:avoid;page-break-inside:avoid;border-style:dashed}
+}
+
+/* Điện thoại xoay ngang (màn hình thấp ≤ 500px): thanh nút thành cột bên trái để dành chỗ cho khối từ */
+@media (orientation:landscape) and (max-height:500px){
+  #screen-play{
+    grid-template-columns:72px minmax(0,4fr) minmax(0,7fr);
+    grid-template-rows:auto auto minmax(0,1fr);
+    grid-template-areas:"top scene bar" "top scene coplay" "top scene tray";
+    gap:6px;padding:6px;
+  }
+  #screen-play .topbar{flex-direction:column;align-items:stretch}
+  #screen-play .star-counter{flex-direction:column;justify-content:center;padding:4px;font-size:20px;gap:0}
+  .bubble{flex-wrap:wrap;gap:4px;padding:4px 6px}
+  .bubble .who{display:none}
+  .bubble-text{flex:1 1 100%;font-size:14px}
+  .bubble-pic{flex:1;font-size:28px}
+  .bar-buttons{flex-direction:row}
+  .big-say{min-width:64px;min-height:64px;font-size:34px}
+  .bar{min-height:64px}
+  .char{font-size:clamp(48px,15vh,80px)}
+  .char.friend{font-size:clamp(40px,12vh,64px)}
+  .tray{padding-top:14px;gap:14px 8px}
+}
+/* Giảm chuyển động nếu thiết bị yêu cầu */
+@media (prefers-reduced-motion:reduce){
+  .blink,.big-say.ready,.block.ghost.next{animation:none}
+}
+/* Màn hình nhỏ: chữ khối vẫn ≥ 24px */
+@media (max-width:420px){
+  .block{font-size:24px;padding:6px 13px}
+  .cat-modifier{padding:6px 22px}
+  .big-say{min-width:72px;min-height:72px;font-size:40px}
+  /* Bong bóng thoại trên điện thoại: chữ nhỏ hơn để không bị dồn thành cột dọc */
+  .bubble{gap:4px;padding:4px 4px 4px 10px}
+  .bubble .who{display:none}
+  .bubble-text{font-size:14px}
+  .bubble-pic{font-size:28px}
+  .tray{gap:14px 8px;padding:14px 4px 6px}
+  #screen-play{gap:6px;padding:6px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== MÀN HÌNH CHÍNH ===== -->
+  <section id="screen-home" class="screen active">
+    <header class="topbar home-top">
+      <button class="icon-btn" id="btnParent" aria-label="Khu phụ huynh">👨‍👩‍👧</button>
+      <div class="spacer"></div>
+      <button class="icon-btn fs-btn" aria-label="Toàn màn hình">⛶</button>
+    </header>
+    <div class="logo">🏘️🍽️</div>
+    <h1 class="title">Tiny Town Talkers</h1>
+    <!-- Rồng con: được cho ăn "giọt nắng" mỗi ngày bé chơi xong ít nhất 1 ca -->
+    <div class="dragon-box" id="dragonBox" aria-label="Rồng con">
+      <div class="dragon-wrap"><span class="dragon">🐉</span><span class="blanket"></span><span class="zzz">💤</span></div>
+      <div class="sun-info"><span id="sunDrops">☀️ 0</span><span id="wakeHint" class="wake-hint"></span></div>
+    </div>
+    <!-- Chọn vai: chỉ dùng hình, không cần đọc -->
+    <div class="roles">
+      <button class="role-btn blink" id="btnRoleCustomer" aria-label="Chơi vai Khách">
+        <span class="role-pic">🧒🍽️</span><span class="role-play">▶</span>
+      </button>
+      <button class="role-btn blink" id="btnRoleWaiter" aria-label="Chơi vai Bồi bàn" style="animation-delay:.8s">
+        <span class="role-pic">🤵🍕</span><span class="role-play">▶</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== MÀN HÌNH KẾT THÚC CA ===== -->
+  <section id="screen-end" class="screen">
+    <div class="end-party">🎉</div>
+    <div class="end-stars" id="endStars"></div>
+    <div class="end-dragon" id="endDragon"></div>
+    <div class="end-buttons">
+      <button class="icon-btn" id="btnEndHome" aria-label="Trang chủ">🏠</button>
+      <button class="icon-btn big-play blink" id="btnEndAgain" aria-label="Chơi tiếp">▶</button>
+    </div>
+  </section>
+
+  <!-- ===== TỦ ĐỒ (trước mỗi ca chơi) ===== -->
+  <section id="screen-wardrobe" class="screen">
+    <div class="ward-avatar" id="wardAvatar"><span class="face">🧒</span><div class="wear"></div></div>
+    <div class="ward-items" id="wardItems"></div>
+    <div class="end-buttons">
+      <button class="icon-btn" id="btnWardHome" aria-label="Quay lại">←</button>
+      <button class="icon-btn big-play blink" id="btnWardGo" aria-label="Bắt đầu">▶</button>
+    </div>
+  </section>
+
+  <!-- ===== HẾT GIỜ CHƠI: rồng con đi ngủ ===== -->
+  <section id="screen-lock" class="screen">
+    <header class="topbar home-top">
+      <button class="icon-btn" id="btnParentLock" aria-label="Khu phụ huynh">👨‍👩‍👧</button>
+    </header>
+    <div class="lock-moon">🌙✨</div>
+    <div class="dragon-wrap sleeping big"><span class="dragon">🐉</span><span class="blanket"></span><span class="zzz">💤</span></div>
+  </section>
+
+  <!-- ===== KHU PHỤ HUYNH (có chữ – dành cho người lớn) ===== -->
+  <section id="screen-parent" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" id="btnParentBack" aria-label="Quay lại">←</button>
+      <h2 class="parent-title">Khu phụ huynh</h2>
+    </header>
+    <div class="parent-body">
+      <div class="p-card warn hidden" id="voiceWarn">⚠️ Thiết bị này chưa có giọng đọc tiếng Anh (en-US). Bé vẫn chơi được nhưng giọng có thể sai hoặc không có tiếng. Hãy thử Chrome/Edge/Safari, hoặc cài thêm giọng tiếng Anh trong cài đặt của máy.</div>
+      <div class="p-card">
+        <h3>📊 Báo cáo</h3>
+        <ul class="report" id="report"></ul>
+        <div class="p-label">Các từ bé đã dùng đúng:</div>
+        <div class="words-used" id="wordsUsed"></div>
+      </div>
+      <div class="p-card">
+        <h3>⚙️ Cài đặt</h3>
+        <div class="p-label">Giới hạn chơi mỗi ngày:</div>
+        <div class="seg" id="limitSeg">
+          <button class="seg-btn" data-min="10">10 phút</button>
+          <button class="seg-btn" data-min="15">15 phút</button>
+          <button class="seg-btn" data-min="20">20 phút</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="coplayToggle"> <span>Chế độ ba mẹ chơi cùng (hiện gợi ý tiếng Việt dưới mỗi lượt)</span></label>
+      </div>
+      <div class="p-card">
+        <h3>🃏 Thẻ bài thật</h3>
+        <button class="p-btn" id="btnPrintCards">🖨️ In thẻ (khổ A4)</button>
+      </div>
+      <div class="p-card">
+        <button class="danger-btn" id="btnReset">🗑️ Xóa toàn bộ tiến độ</button>
+      </div>
+      <p class="p-note">Trò chơi không thu thập tên, ảnh hay giọng nói; không quảng cáo, không mua hàng, không liên kết ra ngoài. Tiến độ chỉ lưu trên máy này.</p>
+    </div>
+  </section>
+
+  <!-- ===== TRANG IN THẺ (khổ A4, in ra cắt được) ===== -->
+  <section id="screen-print" class="screen">
+    <header class="topbar print-toolbar">
+      <button class="icon-btn" id="btnPrintBack" aria-label="Quay lại">←</button>
+      <button class="icon-btn" id="btnPrintNow" aria-label="In">🖨️</button>
+      <span class="print-help" id="printHelp"></span>
+    </header>
+    <div class="print-scroll"><div class="card-grid" id="cardGrid"></div></div>
+  </section>
+
+  <!-- ===== MỞ TỪ THẺ QR (?card=...) ===== -->
+  <section id="screen-card" class="screen">
+    <div class="card-show" id="cardShow"></div>
+    <button class="icon-btn big-play blink" id="btnCardGo" aria-label="Chơi với thẻ này">▶</button>
+  </section>
+
+  <!-- ===== QUÉT THẺ BẰNG WEBCAM ===== -->
+  <div class="modal hidden" id="scanModal" role="dialog" aria-label="Quét thẻ">
+    <div class="scan-box">
+      <div id="qrReader" class="qr-reader"></div>
+      <div class="scan-msg" id="scanMsg">📷 🃏</div>
+      <button class="icon-btn" id="scanClose" aria-label="Đóng">✖</button>
+    </div>
+  </div>
+
+  <!-- ===== CỔNG PHỤ HUYNH: giải phép cộng ===== -->
+  <div class="modal hidden" id="gate" role="dialog" aria-label="Cổng phụ huynh">
+    <div class="gate-box">
+      <div class="gate-q" id="gateQ"></div>
+      <div class="gate-ans" id="gateAns">&nbsp;</div>
+      <div class="keypad" id="keypad"></div>
+      <button class="icon-btn" id="gateClose" aria-label="Đóng">✖</button>
+    </div>
+  </div>
+
+  <!-- ===== MÀN HÌNH CHƠI ===== -->
+  <section id="screen-play" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" id="btnHome" aria-label="Trang chủ">🏠</button>
+      <div class="spacer"></div>
+      <button class="icon-btn hidden" id="btnScan" aria-label="Quét thẻ">📷</button>
+      <button class="icon-btn fs-btn" aria-label="Toàn màn hình">⛶</button>
+      <div class="star-counter" id="starCounter" aria-label="Số sao">⭐ <span id="starCount">0</span></div>
+    </header>
+
+    <div class="scene" id="scene">
+      <div class="bubble" id="bubble">
+        <span class="who" id="bubbleWho">🤵</span>
+        <span class="bubble-text" id="bubbleText"></span>
+        <span class="bubble-pic" id="bubblePic"></span>
+        <button class="icon-btn" id="btnSay" aria-label="Nghe lại">🔊</button>
+        <button class="icon-btn" id="btnSlow" aria-label="Nghe chậm">🐌</button>
+      </div>
+      <div class="stage">
+        <div class="char" id="npc"><span class="face">🤵</span></div>
+        <div class="table"><div class="plate" id="plate"></div></div>
+        <div class="char" id="player"><span class="face">🧒</span><div class="wear" id="playerWear"></div></div>
+        <div class="char friend hidden" id="friend"><span class="face">👧</span></div>
+      </div>
+      <div class="fx" id="fx"></div>  <!-- lớp hoạt cảnh hài hước -->
+    </div>
+
+    <div class="bar-wrap">
+      <div class="bar" id="bar"></div>
+      <div class="bar-buttons">
+        <button class="icon-btn big-say" id="btnSentence" aria-label="Đọc cả câu">🔊</button>
+        <button class="icon-btn" id="btnSentenceSlow" aria-label="Đọc chậm cả câu">🐌</button>
+      </div>
+    </div>
+
+    <!-- Gợi ý tiếng Việt cho ba mẹ (chỉ hiện khi bật "ba mẹ chơi cùng") -->
+    <div class="coplay hidden" id="coplay">
+      <span><b id="coAskLabel"></b> <i id="coAsk"></i></span>
+      <button class="icon-btn co-btn" id="coAskSay" aria-label="Nghe câu hỏi">🔊</button>
+      <span><b>Con đáp:</b> <i id="coAnswer"></i></span>
+      <button class="icon-btn co-btn" id="coAnswerSay" aria-label="Nghe câu trả lời">🔊</button>
+    </div>
+
+    <div class="tray" id="tray"></div>
+  </section>
+</div>
+
+<script>
+/* =========================================================
+   ĐỊA CHỈ TRANG WEB CỦA GAME – SỬA DUY NHẤT Ở ĐÂY
+   Mã QR trên thẻ in sẽ trỏ tới: SITE_URL + "?card=<id của từ>"
+   Ví dụ khi đưa lên GitHub Pages: 'https://ten-nhom.github.io/tinytown/'
+   ========================================================= */
+const SITE_URL = 'https://hotankhoi.github.io/tiny-town-talkers/';
+
+// Thư viện quét QR bằng webcam – chỉ tải khi bấm nút 📷 (từ cdnjs)
+const QR_SCANNER_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js';
+
+/* =========================================================
+   A. DỮ LIỆU GAME – nhóm chỉ cần sửa ở đây để thêm từ / mẫu câu
+   ========================================================= */
+const GAME_DATA = {
+  // Loại khối: màu nằm ở CSS (.cat-person, .cat-action, ...)
+  categories: ['person', 'action', 'modifier', 'thing', 'polite'],
+
+  // Từ vựng. id dùng trong code (và sau này trong mã QR).
+  //  text   = chữ hiện trên khối
+  //  plural = dạng số nhiều (dùng khi có "two")
+  //  like   = dạng dùng sau "I like" (pizza, cake giữ nguyên; món khác dùng số nhiều)
+  //  food   = true nếu là món ăn thật
+  //  silly  = tên tình huống hài hước khi bé dùng từ này
+  //  card   = hình minh họa trên thẻ in (từ nào đã có emoji thì thẻ dùng luôn emoji đó)
+  words: {
+    'i':        { text: 'I',        cat: 'person',   card: '🙋' },
+    'you':      { text: 'You',      cat: 'person',   card: '🫵' },
+    'want':     { text: 'want',     cat: 'action',   card: '🤲' },
+    'like':     { text: 'like',     cat: 'action',   card: '❤️' },
+    'here-is':  { text: 'Here is',  cat: 'action',   card: '🍽️' },
+    'a':        { text: 'a',        cat: 'modifier', card: '☝️' },
+    'two':      { text: 'two',      cat: 'modifier', card: '✌️' },
+    'your':     { text: 'your',     cat: 'modifier', card: '👉' },
+    'hot':      { text: 'hot',      cat: 'modifier', emoji: '🔥' },
+    'yummy':    { text: 'yummy',    cat: 'modifier', emoji: '😋' },
+    'pizza':    { text: 'pizza',    cat: 'thing', emoji: '🍕', plural: 'pizzas',     like: 'pizza',      food: true },
+    'cake':     { text: 'cake',     cat: 'thing', emoji: '🍰', plural: 'cakes',      like: 'cake',       food: true },
+    'burger':   { text: 'burger',   cat: 'thing', emoji: '🍔', plural: 'burgers',    like: 'burgers',    food: true },
+    'sandwich': { text: 'sandwich', cat: 'thing', emoji: '🥪', plural: 'sandwiches', like: 'sandwiches', food: true },
+    'cookie':   { text: 'cookie',   cat: 'thing', emoji: '🍪', plural: 'cookies',    like: 'cookies',    food: true },
+    'hot-dog':  { text: 'hot dog',  cat: 'thing', emoji: '🌭', plural: 'hot dogs',   like: 'hot dogs',   food: true },
+    'please':   { text: 'please',   cat: 'polite', card: '🙏' },
+    'thank-you':{ text: 'thank you',cat: 'polite', card: '💖' },
+    // Từ "gây cười" – cũng là đồ vật (màu xanh lá) để bé có thể chọn nhầm
+    'shoe':     { text: 'shoe', cat: 'thing', emoji: '👟', plural: 'shoes', like: 'shoes', silly: 'shoe' },
+    'hat':      { text: 'hat',  cat: 'thing', emoji: '🎩', plural: 'hats',  like: 'hats',  silly: 'hat' },
+    'cat':      { text: 'cat',  cat: 'thing', emoji: '🐱', plural: 'cats',  like: 'cats',  silly: 'cat' },
+    'ball':     { text: 'ball', cat: 'thing', emoji: '⚽', plural: 'balls', like: 'balls', silly: 'ball' },
+  },
+
+  // Nhân vật & cao độ giọng (pitch) để mỗi người nghe hơi khác nhau
+  people: {
+    waiter:    { emoji: '🤵', pitch: 1.0 },
+    kid:       { emoji: '🧒', pitch: 1.25 },
+    friend:    { emoji: '👧', pitch: 1.5 },
+    cat:       { emoji: '🐱', pitch: 1.9 },
+    // Khách máy (vai Bồi bàn): chọn ngẫu nhiên một người mỗi ca
+    customers: [
+      { emoji: '👵', pitch: 1.15 }, { emoji: '👴', pitch: 0.85 },
+      { emoji: '👩', pitch: 1.2 },  { emoji: '🧔', pitch: 0.9 },
+    ],
+  },
+
+  // Mẫu câu (mỗi "lượt" là một câu bé cần ghép)
+  //  npcSay  = câu nhân vật máy nói trước. Chỗ trống: {target} món khách gọi, {adj} hot/yummy,
+  //            {like} món bé đã gọi (dạng sau "like"), {food}/{foods} món bé chọn (số ít/số nhiều)
+  //  slots   = các ô trong thanh câu, theo thứ tự trái → phải
+  //            ok: danh sách từ đúng | 'food' = món ăn bất kỳ | 'target' = đúng món khách gọi | 'adj' = đúng tính chất
+  //            optional: ô không bắt buộc | magic: thiếu "please" → hỏi "magic word" | two: dùng "a" → khách giơ 2 ngón
+  //  tray    = các khối cố định trong khay; foods = số món thêm vào; silly = số từ gây cười
+  //  model   = câu mẫu máy đọc khi bé cần thử lại
+  //  success = câu nhân vật nói khi bé ghép đúng
+  turns: {
+    // --- Vai KHÁCH: bé gọi món ---
+    c1: {
+      role: 'customer',
+      npcSay: 'May I take your order?',
+      slots: [
+        { cat: 'person',   ok: ['i'] },
+        { cat: 'action',   ok: ['want'] },
+        { cat: 'modifier', ok: ['a'] },
+        { cat: 'thing',    ok: 'food' },
+        { cat: 'polite',   ok: ['please'], optional: true, magic: true },
+      ],
+      tray: ['i', 'you', 'want', 'like', 'a', 'two', 'please'], foods: 3, silly: 1,
+      model: 'I want a {food}, please.',
+      success: 'Here you are! One {food}!',
+      serves: true,
+    },
+    c2: {
+      role: 'customer', friend: true,
+      npcSay: 'Hello, you two! May I take your order?',
+      slots: [
+        { cat: 'person',   ok: ['i'] },
+        { cat: 'action',   ok: ['want'] },
+        { cat: 'modifier', ok: ['two'], two: true },
+        { cat: 'thing',    ok: 'food' },
+        { cat: 'polite',   ok: ['please'], optional: true, magic: true },
+      ],
+      tray: ['i', 'you', 'want', 'like', 'a', 'two', 'please'], foods: 3, silly: 1,
+      model: 'I want two {foods}, please.',
+      success: 'Here you are! Two {foods}!',
+      serves: true,
+    },
+    c3: {
+      role: 'customer', friend: true,
+      npcSay: 'Here you are! Do you like {like}?',
+      slots: [
+        { cat: 'person', ok: ['i'] },
+        { cat: 'action', ok: ['like'] },
+        { cat: 'thing',  ok: 'food' },
+        { cat: 'polite', ok: ['thank-you'] },
+      ],
+      tray: ['i', 'you', 'want', 'like', 'a', 'please', 'thank-you'], foods: 3, silly: 1,
+      model: 'I like {like}. Thank you!',
+      success: 'You are welcome!',
+    },
+    // --- Vai BỒI BÀN: khách máy gọi món, bé mang ra ---
+    w1: {
+      role: 'waiter', needsTarget: true,
+      npcSay: 'Can I have a {target}, please?',
+      slots: [
+        { cat: 'action',   ok: ['here-is'] },
+        { cat: 'modifier', ok: ['your'] },
+        { cat: 'thing',    ok: 'target' },
+      ],
+      tray: ['i', 'here-is', 'want', 'a', 'two', 'your'], foods: 3, silly: 1,
+      model: 'Here is your {target}.',
+      success: 'Thank you! Yummy!',
+      serves: true,
+    },
+    w2: {
+      role: 'waiter', needsTarget: true, adjs: ['hot', 'yummy'],
+      npcSay: 'Can I have a {adj} {target}, please?',
+      slots: [
+        { cat: 'action',   ok: ['here-is'] },
+        { cat: 'modifier', ok: ['your'] },
+        { cat: 'modifier', ok: 'adj' },
+        { cat: 'thing',    ok: 'target' },
+      ],
+      tray: ['here-is', 'want', 'your', 'a', 'hot', 'yummy'], foods: 3, silly: 1,
+      model: 'Here is your {adj} {target}.',
+      success: 'Thank you! Mmm, so {adj}!',
+      serves: true,
+    },
+  },
+
+  // TÌNH HUỐNG "SAI LẦM HÀI HƯỚC" – không bao giờ nói "sai", không có âm báo lỗi.
+  //  anim  = hoạt cảnh; lines = [ai nói, câu nói]. "npc" = nhân vật máy (bồi bàn hoặc khách).
+  //  Có thể tách câu theo vai: customer: [...] (bé là khách), waiter: [...] (bé là bồi bàn).
+  reactions: {
+    shoe: { anim: 'onHead',
+      waiter:   [['npc', 'Oh! That is a shoe, not a {target}! Can I have a {target}, please?']],
+      customer: [['npc', 'Oh! A shoe? You can not eat a shoe! Let us try again!']] },
+    hat: { anim: 'onHead',
+      waiter:   [['npc', 'A hat? I can not eat a hat! Can I have a {target}, please?']],
+      customer: [['npc', 'A hat? Silly! You can not eat a hat!']] },
+    cat:  { anim: 'catJump',    lines: [['cat', 'Meow!'], ['npc', 'Ha ha! That is a cat!']] },
+    ball: { anim: 'ballBounce', lines: [['npc', 'Boing boing! That is a ball!']] },
+    twoFingers: { anim: 'twoFingers', lines: [['friend', 'Two, please!']] },
+    magicWord:  { anim: 'magic',      lines: [['npc', 'What is the magic word?']] },
+    wrongFood:  { anim: 'wrongFood',  lines: [['npc', 'Hmm, that is a {got}. Can I have a {target}, please?']] },
+    wrongAdj:   { anim: 'think',      lines: [['npc', 'I want a {adj} {target}, please!']] },
+    tryAgain:   { anim: 'think',      lines: [['npc', 'Hmm? Let us try again!'], ['npc', '{model}']] },
+  },
+
+  // Mỗi ca chơi = 3 câu
+  sessions: {
+    customer: ['c1', 'c2', 'c3'],
+    waiter:   ['w1', 'w2', 'w2'],
+  },
+
+  // TỦ ĐỒ trước ca chơi: chạm để nghe tên tiếng Anh và mặc lên nhân vật (hình SVG tự vẽ)
+  wardrobe: [
+    { id: 'chef-hat', say: 'chef hat', svg:
+      '<svg viewBox="0 0 64 56"><g fill="#fff" stroke="#b8a68a" stroke-width="2.5"><circle cx="18" cy="22" r="13"/><circle cx="46" cy="22" r="13"/><circle cx="32" cy="15" r="15"/><rect x="15" y="26" width="34" height="25" rx="4"/></g><path d="M16 42h32" stroke="#b8a68a" stroke-width="2.5"/></svg>' },
+    { id: 'apron', say: 'apron', svg:
+      '<svg viewBox="0 0 64 64"><path d="M22 4h20v12l14 8v36H8V24l14-8z" fill="#fb7185" stroke="#be123c" stroke-width="2.5" stroke-linejoin="round"/><rect x="22" y="34" width="20" height="14" rx="3" fill="#fecdd3" stroke="#be123c" stroke-width="2"/></svg>' },
+    { id: 'menu', say: 'menu', svg:
+      '<svg viewBox="0 0 64 64"><rect x="10" y="4" width="44" height="56" rx="6" fill="#92400e" stroke="#451a03" stroke-width="2.5"/><rect x="16" y="10" width="32" height="44" rx="3" fill="#fef3c7"/><g stroke="#92400e" stroke-width="3" stroke-linecap="round"><path d="M22 20h20M22 30h20M22 40h14"/></g></svg>' },
+  ],
+
+  // Gợi ý cho ba mẹ (chế độ chơi cùng). Câu tiếng Anh lấy từ npcSay và model của mỗi lượt.
+  coplay: {
+    customer: 'Ba/mẹ hỏi con:',
+    waiter:   'Ba/mẹ đóng vai khách:',
+  },
+
+  // Cài đặt mặc định
+  settings: { limitMin: 15, limitChoices: [10, 15, 20] },
+};
+
+/* =========================================================
+   B. LƯU TIẾN ĐỘ (localStorage) – luôn bọc try/catch
+   Nếu trình duyệt chặn bộ nhớ, game vẫn chạy (chỉ không nhớ sao).
+   ========================================================= */
+const Store = {
+  key: 'tinytown.v1',
+  load() {
+    try { return JSON.parse(localStorage.getItem(this.key)) || {}; }
+    catch (e) { return {}; }
+  },
+  save(data) {
+    try { localStorage.setItem(this.key, JSON.stringify(data)); }
+    catch (e) { /* bỏ qua: chế độ ẩn danh hoặc bị chặn */ }
+  },
+};
+// Giá trị ban đầu của tiến độ:
+//  stars = tổng số sao, sessionsTotal = số ca đã xong, wordsUsed = số lần mỗi từ được dùng trong câu đúng
+//  streak = chuỗi ngày học, sunDrops = số giọt nắng rồng đã ăn, lastFedDay = ngày gần nhất rồng được cho ăn
+//  dragonAsleep = rồng đang trùm chăn ngủ (vì bé nghỉ ≥ 1 ngày)
+//  today / sessionsToday / playMsToday = ngày hôm nay, số ca hôm nay, thời gian chơi hôm nay (mili-giây)
+//  limitMin = giới hạn phút mỗi ngày, coplay = bật chế độ ba mẹ chơi cùng
+function freshProgress() {
+  return {
+    stars: 0, sessionsTotal: 0, wordsUsed: {},
+    streak: 0, sunDrops: 0, lastFedDay: null, dragonAsleep: false,
+    today: null, sessionsToday: 0, playMsToday: 0,
+    limitMin: GAME_DATA.settings.limitMin, coplay: false,
+  };
+}
+const progress = Object.assign(freshProgress(), Store.load());
+function saveProgress() { Store.save(progress); }
+
+/* --- Ngày tháng & chuỗi ngày --- */
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function dayDiff(a, b) {   // số ngày từ a đến b (chuỗi YYYY-MM-DD)
+  const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+}
+// Sang ngày mới: đặt lại số ca & thời gian hôm nay. Nghỉ ≥ 1 ngày → rồng trùm chăn ngủ (chuỗi KHÔNG mất).
+function rollDay() {
+  const t = todayStr();
+  if (progress.today !== t) {
+    progress.today = t;
+    progress.sessionsToday = 0;
+    progress.playMsToday = 0;
+  }
+  if (progress.lastFedDay && dayDiff(progress.lastFedDay, t) >= 2) progress.dragonAsleep = true;
+  saveProgress();
+}
+// Gọi khi bé chơi xong 1 ca. Trả về true nếu rồng vừa được cho ăn 1 giọt nắng.
+function feedDragonAfterSession() {
+  progress.sessionsToday++;
+  const t = todayStr();
+  if (progress.lastFedDay === t) return false;                         // hôm nay rồng đã ăn rồi
+  if (progress.dragonAsleep && progress.sessionsToday < 2) return false; // rồng đang ngủ: cần 2 ca để thức dậy
+  progress.dragonAsleep = false;
+  progress.streak++;
+  progress.sunDrops++;
+  progress.lastFedDay = t;
+  return true;
+}
+const limitMs = () => progress.limitMin * 60000;
+const isTimeUp = () => progress.playMsToday >= limitMs();
+
+/* =========================================================
+   C. GIỌNG ĐỌC (Web Speech API)
+   Chọn giọng en-US; tốc độ 0.9 bình thường, 0.6 khi bấm ốc sên.
+   ========================================================= */
+const RATE_NORMAL = 0.9, RATE_SLOW = 0.6;
+const Speech = {
+  supported: 'speechSynthesis' in window,
+  voice: null,
+  hasEnglish: false,
+  init() {
+    if (!this.supported) return;
+    const pick = () => {
+      const voices = speechSynthesis.getVoices() || [];
+      const en = voices.filter(v => /^en([-_]|$)/i.test(v.lang));
+      const us = en.filter(v => /^en[-_]US/i.test(v.lang));
+      this.voice = us.find(v => v.localService) || us[0] || en.find(v => v.localService) || en[0] || null;
+      this.hasEnglish = !!this.voice;
+    };
+    pick();
+    // Danh sách giọng thường tải chậm → nghe sự kiện voiceschanged
+    if (speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged', pick);
+    else speechSynthesis.onvoiceschanged = pick;
+  },
+  // Đọc một câu, trả về Promise khi đọc xong (có hẹn giờ dự phòng vì vài trình duyệt không báo "end")
+  speak(text, opts = {}) {
+    return new Promise(resolve => {
+      const rate = opts.rate || RATE_NORMAL;
+      const fallback = setTimeout(resolve, 800 + text.length * 95 / rate);
+      if (!this.supported || !text) { clearTimeout(fallback); setTimeout(resolve, 300); return; }
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        if (this.voice) u.voice = this.voice;
+        u.rate = rate;
+        u.pitch = opts.pitch || 1;
+        const done = () => { clearTimeout(fallback); resolve(); };
+        u.onend = done; u.onerror = done;
+        speechSynthesis.speak(u);
+      } catch (e) { clearTimeout(fallback); resolve(); }
+    });
+  },
+  stop() { try { this.supported && speechSynthesis.cancel(); } catch (e) {} },
+};
+Speech.init();
+
+/* =========================================================
+   D. HÀM TIỆN ÍCH
+   ========================================================= */
+const WORDS = GAME_DATA.words;
+const FOOD_IDS = Object.keys(WORDS).filter(id => WORDS[id].food);
+const SILLY_IDS = Object.keys(WORDS).filter(id => WORDS[id].silly);
+const $ = sel => document.querySelector(sel);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function restartAnim(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+/* =========================================================
+   E. TRẠNG THÁI GAME
+   ========================================================= */
+const state = {
+  screen: 'home',
+  role: 'customer',
+  turnKeys: [],     // danh sách lượt trong ca
+  turnIndex: 0,
+  turn: null,       // lượt hiện tại (đã chọn món, xếp khay)
+  placed: [],       // các ô trong thanh câu: null hoặc {id, trayIdx}
+  busy: false,      // đang chạy hoạt cảnh → tạm khóa thao tác
+  bubble: { text: '', pitch: 1 },
+  npc: null,        // nhân vật máy của ca này (bồi bàn hoặc một vị khách)
+  lastFood: null,   // món bé gọi gần nhất (để hỏi "Do you like ...?")
+  usedTargets: [],  // món khách đã gọi trong ca (để không lặp)
+  usedAdjs: [],     // tính chất (hot/yummy) đã dùng trong ca
+  sessionStars: 0,
+  sessionId: 0,     // tăng mỗi khi bắt đầu / rời ca chơi (để hủy hoạt cảnh cũ)
+};
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
+  state.screen = name;
+}
+
+/* =========================================================
+   F. CÂU CHỮ: dạng từ (số nhiều) và ghép câu hoàn chỉnh
+   ========================================================= */
+function placedIds() { return state.placed.filter(Boolean).map(p => p.id); }
+
+// Dạng hiển thị/đọc của một từ, tùy các từ đứng cạnh
+function formOf(id, ids) {
+  const w = WORDS[id];
+  if (w.cat === 'thing') {
+    if (ids.includes('two')) return w.plural || w.text + 's';  // two pizza → two pizzas
+    if (ids.includes('like')) return w.like || w.text;         // I like burgers
+  }
+  return w.text;
+}
+
+// Ghép câu đọc liền mạch: "I want a pizza, please."
+function sentenceText(ids) {
+  let out = '';
+  ids.forEach((id, i) => {
+    const t = formOf(id, ids);
+    if (i === 0) out = t;
+    else if (id === 'please') out += ', ' + t;
+    else if (id === 'thank-you') out += '. Thank you';
+    else out += ' ' + t;
+  });
+  if (!out) return '';
+  out = out.charAt(0).toUpperCase() + out.slice(1);
+  return out + (ids[ids.length - 1] === 'thank-you' ? '!' : '.');
+}
+
+// Món ăn bé đang chọn trong thanh câu (nếu chưa có thì lấy món đầu tiên trong khay)
+function chosenFood() {
+  const ids = placedIds();
+  return ids.find(id => WORDS[id].food) || state.turn.target || state.turn.tray.find(id => WORDS[id].food);
+}
+const likeForm = id => WORDS[id].like || WORDS[id].text;
+
+// Thay chỗ trống {target} {adj} {like} {food} {foods} {got} {model} trong câu thoại
+function fill(str, extra = {}) {
+  const t = state.turn;
+  const food = extra.food || chosenFood();
+  const map = {
+    target: t.target ? WORDS[t.target].text : '',
+    adj: t.adj || '',
+    like: likeForm(state.lastFood || food),
+    food: WORDS[food].text,
+    foods: WORDS[food].plural,
+    got: extra.got ? WORDS[extra.got].text : '',
+  };
+  return str.replace(/\{(\w+)\}/g, (m, k) => (k === 'model' ? fill(t.def.model, extra) : (k in map ? map[k] : m)));
+}
+
+/* =========================================================
+   G. BONG BÓNG THOẠI
+   ========================================================= */
+function setBubble(who, text, pic = '', pitch = 1) {
+  $('#bubbleWho').textContent = who;
+  $('#bubbleText').textContent = text;
+  $('#bubblePic').textContent = pic;
+  state.bubble = { text, pitch };
+}
+function sayBubble(rate) { return Speech.speak(state.bubble.text, { rate, pitch: state.bubble.pitch }); }
+// Ai đang nói: 'npc' (nhân vật máy), 'friend' (bạn của bé), 'cat', 'kid'
+function personOf(who) { return who === 'npc' ? state.npc : GAME_DATA.people[who]; }
+// Nhân vật nói: cập nhật bong bóng rồi đọc to
+function say(who, text, pic = '') {
+  const p = personOf(who);
+  setBubble(p.emoji, text, pic, p.pitch);
+  return sayBubble(RATE_NORMAL);
+}
+// Hình minh họa trong bong bóng: món khách gọi (kèm 🔥/😋 nếu có)
+function turnPicture() {
+  const t = state.turn;
+  if (!t.target) return t.def.slots.some(s => s.two) ? '✌️' : '';
+  return (t.adj ? WORDS[t.adj].emoji : '') + WORDS[t.target].emoji;
+}
+
+/* =========================================================
+   H. CA CHƠI & LƯỢT CHƠI
+   ========================================================= */
+function startSession(role) {
+  state.sessionId++;
+  state.role = role;
+  state.turnKeys = GAME_DATA.sessions[role];
+  state.turnIndex = 0;
+  state.lastFood = null;
+  state.usedTargets = [];
+  state.usedAdjs = [];
+  state.sessionStars = 0;
+  // Vai Khách: nhân vật máy là bồi bàn. Vai Bồi bàn: nhân vật máy là một vị khách ngẫu nhiên.
+  state.npc = role === 'customer' ? GAME_DATA.people.waiter : pick(GAME_DATA.people.customers);
+  $('#npc .face').textContent = state.npc.emoji;
+  showScreen('play');
+  updateStars();
+  startTurn();
+  // Mở game từ thẻ QR: đưa khối của thẻ vào thanh câu ngay khi ca bắt đầu
+  if (pendingCard) { const id = pendingCard; pendingCard = null; setTimeout(() => placeCardWord(id), 400); }
+}
+
+// Chuẩn bị một lượt: chọn món khách gọi, món ngẫu nhiên, từ gây cười; xếp khay theo nhóm màu
+function makeTurn(key) {
+  const def = GAME_DATA.turns[key];
+  const t = { key, def, target: null, adj: null };
+  if (def.needsTarget) {
+    t.target = pick(FOOD_IDS.filter(f => !state.usedTargets.includes(f)));
+    state.usedTargets.push(t.target);
+  }
+  if (def.adjs) {
+    // Tính chất: ưu tiên cái chưa dùng trong ca (lượt này "hot" thì lượt sau "yummy"), tránh "hot hot dog"
+    let adjs = def.adjs.filter(a => !(t.target && WORDS[t.target].text.includes(a)));
+    const fresh = adjs.filter(a => !state.usedAdjs.includes(a));
+    t.adj = pick(fresh.length ? fresh : adjs);
+    state.usedAdjs.push(t.adj);
+  }
+  let foods = shuffle(FOOD_IDS.filter(f => f !== t.target)).slice(0, def.foods - (t.target ? 1 : 0));
+  if (t.target) foods.push(t.target);
+  const silly = shuffle(SILLY_IDS).slice(0, def.silly || 0);
+  const ids = def.tray.concat(foods, silly);
+  // Xếp khay theo thứ tự màu (xanh dương → đỏ → vàng → xanh lá → tím), trong mỗi màu thì trộn
+  t.tray = GAME_DATA.categories.flatMap(c => shuffle(ids.filter(id => WORDS[id].cat === c)));
+  return t;
+}
+
+async function startTurn() {
+  state.turn = makeTurn(state.turnKeys[state.turnIndex]);
+  state.placed = state.turn.def.slots.map(() => null);
+  $('#plate').innerHTML = '';
+  clearFx();
+  $('#friend').classList.toggle('hidden', !state.turn.def.friend);
+  renderTray();
+  renderBar();
+  updateCoplay();
+  state.busy = false;   // bé có thể bắt đầu ghép ngay cả khi nhân vật đang nói
+  await say('npc', fill(state.turn.def.npcSay), turnPicture());
+}
+
+/* =========================================================
+   I. VẼ KHỐI TỪ, KHAY VÀ THANH CÂU
+   ========================================================= */
+function makeBlock(id, label) {
+  const w = WORDS[id];
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'block cat-' + w.cat;
+  el.dataset.id = id;
+  el.innerHTML = (w.emoji ? `<span class="emoji">${w.emoji}</span>` : '') + `<span>${label || w.text}</span>`;
+  el.setAttribute('aria-label', label || w.text);
+  return el;
+}
+
+function renderTray() {
+  const tray = $('#tray');
+  tray.innerHTML = '';
+  state.turn.tray.forEach((id, idx) => {
+    const el = makeBlock(id);
+    el.dataset.idx = idx;
+    attachDrag(el, idx);
+    tray.appendChild(el);
+  });
+  updateTrayUsed();
+}
+function updateTrayUsed() {
+  const used = new Set(state.placed.filter(Boolean).map(p => p.trayIdx));
+  document.querySelectorAll('#tray .block').forEach(el => el.classList.toggle('used', used.has(+el.dataset.idx)));
+}
+
+function firstEmptySlot() { return state.placed.findIndex(p => !p); }
+// Câu đã đủ chưa (các ô bắt buộc đều có khối)
+function isComplete() { return state.turn.def.slots.every((s, i) => s.optional || state.placed[i]); }
+
+function renderBar(popIdx = -1) {
+  const bar = $('#bar');
+  bar.innerHTML = '';
+  const ids = placedIds();
+  const next = firstEmptySlot();
+  state.turn.def.slots.forEach((slot, i) => {
+    const p = state.placed[i];
+    let el;
+    if (p) {
+      el = makeBlock(p.id, formOf(p.id, ids));   // tự đổi số nhiều khi có "two"
+      if (i === popIdx) el.classList.add('pop');
+      onTap(el, () => { if (!state.busy) removeSlot(i); });  // chạm để bỏ khối ra
+    } else {
+      el = document.createElement('div');
+      el.className = 'block ghost cat-' + slot.cat + (i === next ? ' next' : '') + (slot.optional ? ' optional' : '');
+      el.innerHTML = '&nbsp;';
+    }
+    el.dataset.slot = i;
+    bar.appendChild(el);
+  });
+  $('#btnSentence').classList.toggle('ready', isComplete());
+}
+
+/* =========================================================
+   J. ĐẶT / BỎ KHỐI
+   Luật: ghép từ trái sang phải. Chạm khối → vào ô trống đầu tiên.
+   Nếu màu khối không hợp ô đó → khối lắc nhẹ, ô cần điền nhấp nháy (không báo "sai").
+   ========================================================= */
+function placeFromTray(trayIdx, slotIdx) {
+  if (state.busy) return false;
+  const id = state.turn.tray[trayIdx];
+  const trayEl = document.querySelector(`#tray .block[data-idx="${trayIdx}"]`);
+  if (slotIdx == null) slotIdx = firstEmptySlot();
+  const slot = state.turn.def.slots[slotIdx];
+  if (slotIdx < 0 || state.placed[slotIdx] || slot.cat !== WORDS[id].cat) {
+    if (trayEl) restartAnim(trayEl, 'wiggle');
+    const nextEl = document.querySelector(`#bar [data-slot="${firstEmptySlot()}"]`);
+    if (nextEl) restartAnim(nextEl, 'bounce');
+    return false;
+  }
+  state.placed[slotIdx] = { id, trayIdx };
+  renderBar(slotIdx);
+  updateTrayUsed();
+  return true;
+}
+function removeSlot(i) {
+  state.placed[i] = null;
+  renderBar();
+  updateTrayUsed();
+}
+function removeLast() {
+  for (let i = state.placed.length - 1; i >= 0; i--) if (state.placed[i]) { removeSlot(i); return; }
+}
+
+/* =========================================================
+   K. ĐIỀU KHIỂN CHUNG CHO CHUỘT – CẢM ỨNG – BÚT (Pointer Events)
+   Nhấp chuột = chạm; kéo bằng chuột = kéo bằng tay.
+   ========================================================= */
+// Chạm/nhấp đơn giản
+function onTap(el, fn) {
+  let downId = null;
+  el.addEventListener('pointerdown', e => { downId = e.pointerId; });
+  el.addEventListener('pointerup', e => { if (e.pointerId === downId) { downId = null; fn(e); } });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') fn(e); });
+}
+
+// Kéo thả khối từ khay; nếu không kéo thì coi như chạm
+function attachDrag(el, trayIdx) {
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (state.busy) return;
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY;
+    const rect = el.getBoundingClientRect();
+    let ghost = null, overSlot = null;
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+
+    const move = ev => {
+      if (!ghost && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 10) {
+        // Bắt đầu kéo: tạo bản sao đi theo ngón tay
+        ghost = el.cloneNode(true);
+        ghost.classList.add('drag-ghost');
+        ghost.style.width = rect.width + 'px';
+        ghost.style.height = rect.height + 'px';
+        document.body.appendChild(ghost);
+        el.style.opacity = '.3';
+        Speech.speak(WORDS[el.dataset.id].text);
+      }
+      if (ghost) {
+        ghost.style.left = (ev.clientX - rect.width / 2) + 'px';
+        ghost.style.top = (ev.clientY - rect.height / 2) + 'px';
+        const s = slotAt(ev.clientX, ev.clientY);
+        if (overSlot && overSlot !== s) overSlot.classList.remove('drop-ok');
+        overSlot = s;
+        if (s && s.classList.contains('cat-' + WORDS[el.dataset.id].cat)) s.classList.add('drop-ok');
+      }
+    };
+    const end = ev => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', end);
+      el.removeEventListener('pointercancel', end);
+      el.style.opacity = '';
+      if (ghost) {
+        ghost.remove();
+        const s = ev.type === 'pointerup' ? slotAt(ev.clientX, ev.clientY) : null;
+        if (s) placeFromTray(trayIdx, +s.dataset.slot);
+        else if (ev.type === 'pointerup' && ev.clientY < $('#tray').getBoundingClientRect().top) placeFromTray(trayIdx);
+      } else if (ev.type === 'pointerup') {
+        tapTrayBlock(el, trayIdx);
+      }
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tapTrayBlock(el, trayIdx); } });
+}
+// Tìm ô trống trong thanh câu dưới vị trí ngón tay
+function slotAt(x, y) {
+  const t = document.elementFromPoint(x, y);
+  const s = t && t.closest('#bar .block.ghost');
+  return s || null;
+}
+// Chạm khối trong khay: đọc to, nảy nhẹ, đưa lên thanh câu
+function tapTrayBlock(el, trayIdx) {
+  Speech.speak(WORDS[el.dataset.id].text);
+  restartAnim(el, 'bounce');
+  setTimeout(() => placeFromTray(trayIdx), 250);
+}
+
+/* =========================================================
+   L. ĐỌC CẢ CÂU & KIỂM TRA
+   ========================================================= */
+async function saySentence(slow) {
+  if (state.busy || !state.turn) return;
+  const ids = placedIds();
+  if (!ids.length) { restartAnim($('#bar'), 'think'); return; }
+  const complete = isComplete();
+  if (complete) state.busy = true;
+  const sid = state.sessionId;
+  $('#bar').classList.add('reading');
+  await Speech.speak(sentenceText(ids), { rate: slow ? RATE_SLOW : RATE_NORMAL, pitch: GAME_DATA.people.kid.pitch });
+  $('#bar').classList.remove('reading');
+  if (!complete || sid !== state.sessionId) return;   // câu chưa đủ: chỉ đọc cho bé nghe; hoặc bé đã rời ca chơi
+  await handleResult(evaluate());
+}
+
+/* So câu bé ghép với mẫu. Kết quả:
+   {type:'ok'} – câu đúng
+   {type:<tên tình huống>, slots:[ô cần sửa], got:<từ>} – một tình huống hài hước để bé sửa lại.
+   Thứ tự ưu tiên: từ gây cười → sai cấu trúc → thiếu "two" → nhầm món → nhầm tính chất → thiếu "please". */
+function evaluate() {
+  const t = state.turn, slots = t.def.slots;
+  const wrong = [];
+  let two = null, food = null, adj = null, magic = null;
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i], p = state.placed[i], id = p && p.id;
+    if (id && WORDS[id].silly) return { type: WORDS[id].silly, slots: [i], got: id };
+    if (slot.magic) { if (id !== 'please') magic = { type: 'magicWord', slots: id ? [i] : [] }; continue; }
+    if (!id) continue;
+    if (slot.ok === 'food') { if (!WORDS[id].food) wrong.push(i); }
+    else if (slot.ok === 'target') { if (id !== t.target) food = { type: 'wrongFood', slots: [i], got: id }; }
+    else if (slot.ok === 'adj') {
+      if (id === t.adj) continue;
+      if (t.def.adjs.includes(id)) adj = { type: 'wrongAdj', slots: [i] }; else wrong.push(i);
+    }
+    else if (!slot.ok.includes(id)) {
+      if (slot.two && id === 'a') two = { type: 'twoFingers', slots: [i] }; else wrong.push(i);
+    }
+  }
+  if (wrong.length) return { type: 'tryAgain', slots: wrong };
+  return two || food || adj || magic || { type: 'ok' };
+}
+
+async function handleResult(res) {
+  const def = state.turn.def;
+  const food = chosenFood();
+  // sid = "mã ca chơi". Nếu bé bấm 🏠 hoặc hết giờ trong lúc hoạt cảnh đang chạy thì mã đổi → dừng, không chạy tiếp lượt sau.
+  const sid = state.sessionId;
+  const left = () => sid !== state.sessionId;
+  clearFx();
+  if (res.type === 'ok') {
+    // Câu đúng: mang món ra, ngôi sao bay vào góc, nhân vật nhảy mừng
+    const ids = placedIds();
+    ids.forEach(id => { progress.wordsUsed[id] = (progress.wordsUsed[id] || 0) + 1; });
+    if (def.role === 'customer' && def.serves) state.lastFood = food;
+    if (def.serves) {
+      const n = ids.includes('two') ? 2 : 1;
+      const extra = state.turn.adj ? WORDS[state.turn.adj].emoji : '';
+      $('#plate').innerHTML = `<span class="served">${WORDS[food].emoji.repeat(n)}${extra}</span>`;
+    }
+    flyStar($('#btnSentence'));
+    state.sessionStars++;
+    restartAnim($('#npc'), 'jump');
+    restartAnim($('#player'), 'jump');
+    await say('npc', fill(def.success, { food }), def.serves ? WORDS[food].emoji : '💜');
+    await sleep(900);
+    if (!left()) nextTurn();
+    return;
+  }
+  // Tình huống hài hước: chạy hoạt cảnh, nhân vật nói, rồi khối cần sửa bay về khay
+  const r = GAME_DATA.reactions[res.type];
+  playReaction(r.anim, res);
+  const lines = r[state.role] || r.lines;
+  for (const [who, text] of lines) {
+    await say(who, fill(text, { food, got: res.got }), turnPicture());
+    if (left()) return;
+  }
+  res.slots.forEach(i => { state.placed[i] = null; });
+  renderBar(); updateTrayUsed();
+  state.busy = false;
+}
+
+function nextTurn() {
+  state.turnIndex++;
+  if (state.turnIndex >= state.turnKeys.length) endSession();
+  else startTurn();
+}
+
+// Hết 3 câu: màn ăn mừng
+function endSession() {
+  progress.sessionsTotal++;
+  const fed = feedDragonAfterSession();
+  saveProgress();
+  $('#endStars').textContent = '⭐'.repeat(state.sessionStars);
+  // Rồng con: được ăn giọt nắng / vẫn ngủ chờ thêm 1 ca / đã no hôm nay
+  const box = $('#endDragon');
+  if (fed) box.innerHTML = '<span class="dragon-wrap fed"><span class="dragon">🐉</span></span><span class="sun-fly">☀️</span>';
+  else if (progress.dragonAsleep) box.innerHTML = '<span class="dragon-wrap sleeping"><span class="dragon">🐉</span><span class="blanket"></span><span class="zzz">💤</span></span><span>☀️ ▶</span>';
+  else box.innerHTML = '<span class="dragon-wrap"><span class="dragon">🐉</span></span><span>😊</span>';
+  showScreen('end');
+  Speech.speak('Great job! You did it!', { pitch: GAME_DATA.people.kid.pitch });
+}
+
+/* =========================================================
+   L3. CHẾ ĐỘ BA MẸ CHƠI CÙNG – dòng gợi ý tiếng Việt dưới mỗi lượt
+   ========================================================= */
+function updateCoplay() {
+  const box = $('#coplay');
+  box.classList.toggle('hidden', !progress.coplay || !state.turn);
+  if (!progress.coplay || !state.turn) return;
+  const def = state.turn.def;
+  $('#coAskLabel').textContent = GAME_DATA.coplay[def.role];
+  $('#coAsk').textContent = fill(def.npcSay);
+  $('#coAnswer').textContent = fill(def.model);
+}
+
+/* =========================================================
+   L2. HOẠT CẢNH HÀI HƯỚC
+   Các hình nhỏ được đặt vào lớp #fx phủ lên khung cảnh.
+   ========================================================= */
+function clearFx() {
+  $('#fx').innerHTML = '';
+  document.querySelectorAll('.char').forEach(c => c.classList.remove('shake'));
+}
+// Đặt một biểu tượng tại đỉnh (hoặc giữa) của một phần tử trong khung cảnh
+function fxAt(target, emoji, cls, where = 'top') {
+  const sc = $('#scene').getBoundingClientRect(), r = target.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'fx-item ' + cls;
+  el.textContent = emoji;
+  el.style.left = (r.left - sc.left + r.width / 2) + 'px';
+  el.style.top = (where === 'top' ? r.top - sc.top : r.top - sc.top + r.height / 2) + 'px';
+  $('#fx').appendChild(el);
+  return el;
+}
+// Người đóng vai khách: vai Khách → nhân vật của bé, vai Bồi bàn → nhân vật máy
+const customerEl = () => (state.role === 'customer' ? $('#player') : $('#npc'));
+
+function playReaction(anim, res) {
+  const plate = $('#plate');
+  const got = res.got && WORDS[res.got];
+  switch (anim) {
+    case 'onHead':      // mang nhầm giày/mũ → khách đội lên đầu
+      fxAt(customerEl(), got.emoji, 'on-head');
+      restartAnim(customerEl(), 'shake');
+      break;
+    case 'catJump':     // mèo nhảy khỏi đĩa
+      fxAt(plate, '🐱', 'cat-jump');
+      break;
+    case 'ballBounce':  // bóng nảy ra khỏi màn hình
+      fxAt(plate, '⚽', 'ball-bounce');
+      break;
+    case 'twoFingers':  // gọi "a" thay vì "two" → bạn của bé giơ 2 ngón tay
+      fxAt($('#friend').classList.contains('hidden') ? customerEl() : $('#friend'), '✌️', 'pop-up');
+      break;
+    case 'magic':       // thiếu "please" → bồi bàn mỉm cười, lấp lánh
+      fxAt($('#npc'), '😊✨', 'pop-up');
+      break;
+    case 'wrongFood':   // mang nhầm món → món hiện trên đĩa, khách lắc đầu
+      fxAt(plate, got.emoji, 'on-plate', 'mid');
+      restartAnim(customerEl(), 'shake');
+      break;
+    default:            // nghiêng đầu suy nghĩ
+      fxAt($('#npc'), '🤔', 'pop-up');
+      restartAnim($('#npc'), 'think');
+  }
+}
+
+/* =========================================================
+   M. NGÔI SAO
+   ========================================================= */
+function updateStars() { $('#starCount').textContent = progress.stars; }
+function flyStar(fromEl) {
+  const a = fromEl.getBoundingClientRect(), b = $('#starCounter').getBoundingClientRect();
+  const s = document.createElement('div');
+  s.className = 'flying-star'; s.textContent = '⭐';
+  const x0 = a.left + a.width / 2, y0 = a.top + a.height / 2;
+  s.style.left = x0 + 'px'; s.style.top = y0 + 'px';
+  document.body.appendChild(s);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    s.style.transform = `translate(${b.left + 30 - x0}px, ${b.top + b.height / 2 - y0}px) scale(.5)`;
+  }));
+  setTimeout(() => {
+    s.remove();
+    progress.stars++; saveProgress(); updateStars();
+    restartAnim($('#starCounter'), 'bump');
+  }, 1000);
+}
+
+/* =========================================================
+   N. GẮN SỰ KIỆN NÚT
+   ========================================================= */
+// Mở khóa giọng đọc trên iPhone/iPad: lần chạm đầu tiên đọc một câu rỗng
+document.addEventListener('pointerdown', function unlock() {
+  try { if (Speech.supported) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
+  document.removeEventListener('pointerdown', unlock);
+}, { once: true });
+
+// Chọn vai → (kiểm tra giờ chơi) → Tủ đồ → ca chơi
+function chooseRole(role) {
+  state.role = role;
+  if (isTimeUp()) { showLock(); return; }
+  openWardrobe();
+}
+$('#btnRoleCustomer').addEventListener('click', () => chooseRole('customer'));
+$('#btnRoleWaiter').addEventListener('click', () => chooseRole('waiter'));
+function goHome() { state.sessionId++; Speech.stop(); state.busy = false; state.turn = null; if (isTimeUp()) showLock(); else { renderDragon(); showScreen('home'); } }
+$('#btnHome').addEventListener('click', goHome);
+$('#btnEndHome').addEventListener('click', goHome);
+$('#btnEndAgain').addEventListener('click', () => chooseRole(state.role));
+$('#coAskSay').addEventListener('click', () => Speech.speak($('#coAsk').textContent));
+$('#coAnswerSay').addEventListener('click', () => Speech.speak($('#coAnswer').textContent));
+
+/* =========================================================
+   O. TỦ ĐỒ – chạm đồ vật để nghe tên tiếng Anh và mặc lên người
+   ========================================================= */
+const worn = new Set();   // đồ bé đang mặc (chỉ trong lần mở game này)
+function renderWear() {
+  const html = GAME_DATA.wardrobe.filter(it => worn.has(it.id))
+    .map(it => it.svg.replace('<svg ', `<svg class="w-${it.id}" `)).join('');
+  $('#wardAvatar .wear').innerHTML = html;
+  $('#playerWear').innerHTML = html;
+}
+function openWardrobe() {
+  const box = $('#wardItems');
+  box.innerHTML = '';
+  GAME_DATA.wardrobe.forEach(it => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ward-item' + (worn.has(it.id) ? ' on' : '');
+    b.setAttribute('aria-label', it.say);
+    b.innerHTML = it.svg;
+    b.addEventListener('click', () => {
+      Speech.speak(it.say);
+      restartAnim(b, 'bounce');
+      if (worn.has(it.id)) worn.delete(it.id); else worn.add(it.id);
+      b.classList.toggle('on', worn.has(it.id));
+      renderWear();
+    });
+    box.appendChild(b);
+  });
+  renderWear();
+  showScreen('wardrobe');
+}
+$('#btnWardGo').addEventListener('click', () => startSession(state.role));
+$('#btnWardHome').addEventListener('click', goHome);
+
+/* =========================================================
+   P. RỒNG CON ở màn hình chính
+   ========================================================= */
+function renderDragon() {
+  rollDay();
+  const wrap = $('#dragonBox .dragon-wrap');
+  wrap.classList.toggle('sleeping', progress.dragonAsleep);
+  $('#sunDrops').textContent = '☀️ ' + progress.sunDrops;
+  // Rồng đang ngủ: hiện 2 chấm = 2 ca cần chơi hôm nay để rồng thức dậy (🟢 đã chơi, ⚪ còn thiếu)
+  const done = Math.min(progress.sessionsToday, 2);
+  $('#wakeHint').textContent = progress.dragonAsleep ? '🟢'.repeat(done) + '⚪'.repeat(2 - done) : '';
+}
+
+/* =========================================================
+   Q. GIỚI HẠN THỜI GIAN CHƠI MỖI NGÀY
+   Đếm thời gian khi bé ở Tủ đồ / màn chơi / màn kết thúc và tab đang mở.
+   Hết giờ → rồng con ngáp và đi ngủ, game khóa đến hôm sau.
+   ========================================================= */
+const COUNTED_SCREENS = ['wardrobe', 'play', 'end'];
+let tick = 0;
+setInterval(() => {
+  const before = progress.today;
+  rollDay();                                        // qua nửa đêm thì tự mở khóa
+  if (before !== progress.today && state.screen === 'lock' && !isTimeUp()) goHome();
+  if (!COUNTED_SCREENS.includes(state.screen) || document.visibilityState !== 'visible') return;
+  progress.playMsToday += 1000;
+  if (++tick % 10 === 0) saveProgress();
+  if (isTimeUp()) { saveProgress(); showLock(); }
+}, 1000);
+
+function showLock() {
+  state.sessionId++;
+  Speech.stop();
+  state.busy = false;
+  state.turn = null;
+  showScreen('lock');
+  Speech.speak('Yawn! Good night! See you tomorrow!', { pitch: 1.3, rate: RATE_SLOW });
+}
+
+/* =========================================================
+   R. CỔNG PHỤ HUYNH – giải phép cộng (ví dụ 12 + 9) mới vào được
+   ========================================================= */
+let gateAnswer = 0, gateInput = '';
+function openGate() {
+  const a = 10 + Math.floor(Math.random() * 20), b = 2 + Math.floor(Math.random() * 8);
+  gateAnswer = a + b; gateInput = '';
+  $('#gateQ').textContent = `${a} + ${b} = ?`;
+  $('#gateAns').innerHTML = '&nbsp;';
+  $('#gate').classList.remove('hidden');
+}
+function closeGate() { $('#gate').classList.add('hidden'); }
+// Bàn phím số tự vẽ (không dùng ô nhập để bàn phím điện thoại không bật lên)
+['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✔'].forEach(k => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = k;
+  b.addEventListener('click', () => {
+    if (k === '⌫') gateInput = gateInput.slice(0, -1);
+    else if (k === '✔') {
+      if (+gateInput === gateAnswer) { closeGate(); openParent(); return; }
+      restartAnim($('#gateAns'), 'shake');
+      setTimeout(openGate, 400);   // đáp án khác → đổi phép tính mới
+      return;
+    } else if (gateInput.length < 3) gateInput += k;
+    $('#gateAns').textContent = gateInput || ' ';
+  });
+  $('#keypad').appendChild(b);
+});
+$('#gateClose').addEventListener('click', closeGate);
+$('#btnParent').addEventListener('click', openGate);
+$('#btnParentLock').addEventListener('click', openGate);
+
+/* =========================================================
+   S. KHU PHỤ HUYNH – báo cáo, cài đặt, xóa tiến độ
+   ========================================================= */
+function fmtTime(ms) { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)} phút ${s % 60} giây`; }
+function openParent() {
+  rollDay();
+  state.prevScreen = state.screen;
+  $('#voiceWarn').classList.toggle('hidden', Speech.supported && Speech.hasEnglish);
+  $('#report').innerHTML = `
+    <li>Số ca đã chơi: <b>${progress.sessionsTotal}</b> (hôm nay: ${progress.sessionsToday})</li>
+    <li>Số sao: <b>${progress.stars}</b> ⭐</li>
+    <li>Thời gian chơi hôm nay: <b>${fmtTime(progress.playMsToday)}</b> / ${progress.limitMin} phút</li>
+    <li>Chuỗi ngày học: <b>${progress.streak}</b> ngày · Rồng đã ăn ${progress.sunDrops} giọt nắng ☀️
+        ${progress.dragonAsleep ? '· Rồng đang ngủ – hôm nay chơi 2 ca để rồng thức dậy' : ''}</li>`;
+  const used = $('#wordsUsed');
+  used.innerHTML = '';
+  const ids = Object.keys(progress.wordsUsed).filter(id => WORDS[id]);
+  if (!ids.length) used.textContent = 'Chưa có.';
+  ids.forEach(id => {
+    const el = makeBlock(id);
+    el.tabIndex = -1;
+    el.insertAdjacentHTML('beforeend', `<span class="count">×${progress.wordsUsed[id]}</span>`);
+    used.appendChild(el);
+  });
+  document.querySelectorAll('#limitSeg .seg-btn').forEach(b => b.classList.toggle('on', +b.dataset.min === progress.limitMin));
+  $('#coplayToggle').checked = !!progress.coplay;
+  showScreen('parent');
+}
+document.querySelectorAll('#limitSeg .seg-btn').forEach(b => b.addEventListener('click', () => {
+  progress.limitMin = +b.dataset.min; saveProgress(); openParent();
+}));
+$('#coplayToggle').addEventListener('change', e => { progress.coplay = e.target.checked; saveProgress(); });
+$('#btnReset').addEventListener('click', () => {
+  if (!confirm('Xóa toàn bộ tiến độ của bé (sao, chuỗi ngày, báo cáo, thời gian hôm nay)?\nCài đặt giới hạn giờ và chế độ chơi cùng được giữ lại.')) return;
+  const keep = { limitMin: progress.limitMin, coplay: progress.coplay };
+  Object.assign(progress, freshProgress(), keep);
+  saveProgress();
+  openParent();
+});
+$('#btnParentBack').addEventListener('click', goHome);
+
+/* =========================================================
+   T. TOÀN MÀN HÌNH (Fullscreen API) – ẩn nút nếu trình duyệt không hỗ trợ (vd. iPhone)
+   ========================================================= */
+const FS = {
+  el: document.documentElement,
+  supported() { return !!(this.el.requestFullscreen || this.el.webkitRequestFullscreen); },
+  active() { return !!(document.fullscreenElement || document.webkitFullscreenElement); },
+  toggle() {
+    try {
+      if (this.active()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else {
+        const p = (this.el.requestFullscreen || this.el.webkitRequestFullscreen).call(this.el);
+        if (p && p.catch) p.catch(() => {});
+      }
+    } catch (e) {}
+  },
+};
+document.querySelectorAll('.fs-btn').forEach(b => {
+  if (!FS.supported()) b.classList.add('hidden');
+  b.addEventListener('click', () => FS.toggle());
+});
+
+/* =========================================================
+   U. PHÍM TẮT CHO BA MẸ (trẻ không cần dùng)
+   Space = đọc cả câu · Backspace = bỏ khối cuối · Esc = thoát toàn màn hình
+   ========================================================= */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (FS.active()) FS.toggle(); if (!$('#gate').classList.contains('hidden')) closeGate(); return; }
+  if (state.screen !== 'play') return;
+  if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); if (!e.repeat) saySentence(false); }
+  else if (e.key === 'Backspace') { e.preventDefault(); if (!state.busy) removeLast(); }
+});
+// Chặn Space "bấm" nhầm vào nút đang được chọn
+document.addEventListener('keyup', e => { if (state.screen === 'play' && (e.key === ' ' || e.code === 'Space')) e.preventDefault(); });
+
+/* =========================================================
+   W. THẺ BÀI THẬT (QR)
+   Mỗi thẻ in có mã QR trỏ tới SITE_URL?card=<id>. Mở trang có tham số card:
+   hiện khối từ đó → bấm ▶ → đọc to, vào ca chơi và đưa khối vào thanh câu.
+   ========================================================= */
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+// Đọc id từ nội dung mã QR: chấp nhận cả đường link đầy đủ lẫn id trơn ("pizza")
+function parseCard(text) {
+  let id = text;
+  try { id = new URL(text).searchParams.get('card') || ''; } catch (e) { /* không phải link */ }
+  id = String(id || '').trim().toLowerCase();
+  return WORDS[id] ? id : null;
+}
+function cardUrl(id) { return SITE_URL + (SITE_URL.includes('?') ? '&' : '?') + 'card=' + encodeURIComponent(id); }
+// Từ chỉ xuất hiện ở vai Bồi bàn (Here is, your, hot, yummy) → mở vai Bồi bàn; còn lại → vai Khách
+function roleForWord(id) {
+  const inRole = r => GAME_DATA.sessions[r].some(k => {
+    const d = GAME_DATA.turns[k];
+    return d.tray.includes(id) || d.slots.some(s => Array.isArray(s.ok) && s.ok.includes(id));
+  });
+  return !inRole('customer') && inRole('waiter') ? 'waiter' : 'customer';
+}
+// Đưa một từ (từ thẻ) vào thanh câu: thêm vào khay nếu chưa có, đặt vào ô trống đầu tiên cùng màu
+function placeCardWord(id) {
+  if (!state.turn || !WORDS[id]) return;
+  const usedIdx = new Set(state.placed.filter(Boolean).map(p => p.trayIdx));
+  let idx = state.turn.tray.findIndex((w, i) => w === id && !usedIdx.has(i));
+  if (idx < 0) { state.turn.tray.push(id); renderTray(); idx = state.turn.tray.length - 1; }
+  Speech.speak(WORDS[id].text);
+  const slot = state.turn.def.slots.findIndex((s, i) => !state.placed[i] && s.cat === WORDS[id].cat);
+  if (slot >= 0) placeFromTray(idx, slot);
+  else { const el = document.querySelector(`#tray .block[data-idx="${idx}"]`); if (el) restartAnim(el, 'bounce'); }
+}
+
+let pendingCard = null;   // từ trên thẻ đang chờ đưa vào ca chơi
+function showCard(id) {
+  pendingCard = id;
+  const box = $('#cardShow');
+  box.innerHTML = '';
+  const el = makeBlock(id);
+  onTap(el, () => { Speech.speak(WORDS[id].text); restartAnim(el, 'bounce'); });
+  box.appendChild(el);
+  showScreen('card');
+}
+$('#btnCardGo').addEventListener('click', () => {
+  Speech.speak(WORDS[pendingCard].text);
+  chooseRole(roleForWord(pendingCard));   // qua Tủ đồ rồi vào ca; khối được đặt khi ca bắt đầu
+});
+
+/* =========================================================
+   X. QUÉT THẺ BẰNG WEBCAM (chỉ trên máy tính có camera)
+   Camera chỉ bật khi bấm 📷, tắt ngay khi đọc được thẻ, khi bấm ✖, hoặc sau 60 giây.
+   Không lưu hình ảnh nào.
+   ========================================================= */
+const Scanner = {
+  inst: null, timer: null,
+  async hasCamera() {
+    try {
+      if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return false;
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices.some(d => d.kind === 'videoinput');
+    } catch (e) { return false; }
+  },
+  async open() {
+    if (this.inst) return;
+    $('#scanModal').classList.remove('hidden');
+    $('#scanMsg').textContent = '⏳';
+    try { if (!window.Html5Qrcode) await loadScript(QR_SCANNER_LIB); }
+    catch (e) { $('#scanMsg').textContent = '⚠️ 📶'; return; }       // mất mạng: không tải được thư viện
+    try {
+      this.inst = new Html5Qrcode('qrReader', { verbose: false });
+      await this.inst.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 }, text => this.onCode(text), () => {});
+      $('#scanMsg').textContent = '📷 🃏';
+      this.timer = setTimeout(() => this.close(), 60000);
+    } catch (e) {
+      this.inst = null;
+      $('#scanMsg').textContent = '⚠️ 📷';                          // bị từ chối quyền camera / camera bận
+    }
+  },
+  onCode(text) {
+    const id = parseCard(text);
+    if (!id || !this.inst) return;
+    this.close();
+    placeCardWord(id);
+  },
+  async close() {
+    clearTimeout(this.timer);
+    const inst = this.inst;
+    this.inst = null;
+    $('#scanModal').classList.add('hidden');
+    if (inst) {
+      try { await inst.stop(); } catch (e) {}     // tắt camera
+      try { inst.clear(); } catch (e) {}
+    }
+  },
+};
+$('#btnScan').addEventListener('click', () => Scanner.open());
+$('#scanClose').addEventListener('click', () => Scanner.close());
+// Chỉ hiện nút 📷 trên máy có chuột (máy tính) VÀ có camera
+function updateScanButton() {
+  const isComputer = window.matchMedia && matchMedia('(pointer: fine)').matches;
+  if (!isComputer) { $('#btnScan').classList.add('hidden'); return; }
+  Scanner.hasCamera().then(ok => $('#btnScan').classList.toggle('hidden', !ok));
+}
+updateScanButton();
+try { navigator.mediaDevices.addEventListener('devicechange', updateScanButton); } catch (e) {}
+
+/* =========================================================
+   Y. TRANG IN THẺ – lưới thẻ khổ A4 (3 × 3 thẻ mỗi trang), mỗi thẻ: màu, emoji, từ, mã QR
+   ========================================================= */
+function qrSvg(text) {
+  if (typeof qrcode !== 'function') return null;
+  try {
+    const q = qrcode(0, 'M');
+    q.addData(text);
+    q.make();
+    return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  } catch (e) { return null; }
+}
+function openPrint() {
+  const grid = $('#cardGrid');
+  grid.innerHTML = '';
+  let missingQr = false;
+  Object.keys(WORDS).forEach(id => {
+    const w = WORDS[id];
+    const svg = qrSvg(cardUrl(id));
+    if (!svg) missingQr = true;
+    const c = document.createElement('div');
+    c.className = 'card cat-' + w.cat;
+    c.innerHTML = `<div class="c-emoji">${w.emoji || w.card || ''}</div><div class="c-word">${w.text}</div>` +
+      (svg ? `<div class="c-qr">${svg}</div>` : '<div class="c-noqr">⚠️ Cần mạng để tạo mã QR</div>');
+    grid.appendChild(c);
+  });
+  $('#printHelp').textContent =
+    (SITE_URL.includes('ten-nhom') ? '⚠️ Hãy sửa SITE_URL ở đầu file thành địa chỉ web thật trước khi in. ' : '') +
+    'Bấm 🖨️ → chọn khổ A4, bật "In hình nền" (Background graphics), rồi cắt theo đường viền.';
+  showScreen('print');
+  // Thư viện QR chưa tải xong (mạng chậm) → tải lại rồi vẽ lại
+  if (missingQr && typeof qrcode !== 'function') {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js')
+      .then(() => { if (state.screen === 'print') openPrint(); }).catch(() => {});
+  }
+}
+$('#btnPrintCards').addEventListener('click', openPrint);
+$('#btnPrintNow').addEventListener('click', () => window.print());
+$('#btnPrintBack').addEventListener('click', openParent);
+
+/* =========================================================
+   Z. KHỞI ĐỘNG
+   ========================================================= */
+// Ẩn tab / khóa màn hình → ngừng đọc
+document.addEventListener('visibilitychange', () => { if (document.hidden) Speech.stop(); });
+rollDay();
+const cardFromUrl = parseCard(new URLSearchParams(location.search).get('card') || '');
+if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }  // xóa ?card khỏi địa chỉ
+if (isTimeUp()) showScreen('lock');
+else if (cardFromUrl) { renderDragon(); showCard(cardFromUrl); }
+else renderDragon();
+$('#btnSay').addEventListener('click', () => sayBubble(RATE_NORMAL));
+$('#btnSlow').addEventListener('click', () => sayBubble(RATE_SLOW));
+$('#btnSentence').addEventListener('click', () => saySentence(false));
+$('#btnSentenceSlow').addEventListener('click', () => saySentence(true));
+</script>
+</body>
+</html>
