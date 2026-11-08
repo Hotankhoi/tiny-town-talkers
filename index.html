@@ -208,7 +208,6 @@ body{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 0 rgba(0,0,0,.15);font:inherit}
 .role-pic{font-size:60px;line-height:1}
 .role-play{font-size:36px;color:#16a34a}
-#btnRoleWaiter{background:#fff1d6}
 
 /* --- Màn hình kết thúc ca --- */
 #screen-end{align-items:center;justify-content:center;gap:20px;text-align:center;background:radial-gradient(#fff7c2,#ffd98a)}
@@ -418,9 +417,6 @@ body{
       <button class="role-btn blink" id="btnRoleCustomer" aria-label="Chơi vai Khách">
         <span class="role-pic">🧒🍽️</span><span class="role-play">▶</span>
       </button>
-      <button class="role-btn blink" id="btnRoleWaiter" aria-label="Chơi vai Bồi bàn" style="animation-delay:.8s">
-        <span class="role-pic">🤵🍕</span><span class="role-play">▶</span>
-      </button>
     </div>
   </section>
 
@@ -601,12 +597,8 @@ const GAME_DATA = {
     'you':      { text: 'You',      cat: 'person',   card: '🫵' },
     'want':     { text: 'want',     cat: 'action',   card: '🤲' },
     'like':     { text: 'like',     cat: 'action',   card: '❤️' },
-    'here-is':  { text: 'Here is',  cat: 'action',   card: '🍽️' },
     'a':        { text: 'a',        cat: 'modifier', card: '☝️' },
     'two':      { text: 'two',      cat: 'modifier', card: '✌️' },
-    'your':     { text: 'your',     cat: 'modifier', card: '👉' },
-    'hot':      { text: 'hot',      cat: 'modifier', emoji: '🔥' },
-    'yummy':    { text: 'yummy',    cat: 'modifier', emoji: '😋' },
     'pizza':    { text: 'pizza',    cat: 'thing', emoji: '🍕', plural: 'pizzas',     like: 'pizza',      food: true },
     'cake':     { text: 'cake',     cat: 'thing', emoji: '🍰', plural: 'cakes',      like: 'cake',       food: true },
     'burger':   { text: 'burger',   cat: 'thing', emoji: '🍔', plural: 'burgers',    like: 'burgers',    food: true },
@@ -628,18 +620,13 @@ const GAME_DATA = {
     kid:       { emoji: '🧒', pitch: 1.25 },
     friend:    { emoji: '👧', pitch: 1.5 },
     cat:       { emoji: '🐱', pitch: 1.9 },
-    // Khách máy (vai Bồi bàn): chọn ngẫu nhiên một người mỗi ca
-    customers: [
-      { emoji: '👵', pitch: 1.15 }, { emoji: '👴', pitch: 0.85 },
-      { emoji: '👩', pitch: 1.2 },  { emoji: '🧔', pitch: 0.9 },
-    ],
   },
 
   // Mẫu câu (mỗi "lượt" là một câu bé cần ghép)
-  //  npcSay  = câu nhân vật máy nói trước. Chỗ trống: {target} món khách gọi, {adj} hot/yummy,
-  //            {like} món bé đã gọi (dạng sau "like"), {food}/{foods} món bé chọn (số ít/số nhiều)
+  //  npcSay  = câu nhân vật máy nói trước. Chỗ trống: {like} món bé đã gọi (dạng sau "like"),
+  //            {food}/{foods} món bé chọn (số ít/số nhiều)
   //  slots   = các ô trong thanh câu, theo thứ tự trái → phải
-  //            ok: danh sách từ đúng | 'food' = món ăn bất kỳ | 'target' = đúng món khách gọi | 'adj' = đúng tính chất
+  //            ok: danh sách từ đúng | 'food' = món ăn bất kỳ
   //            optional: ô không bắt buộc | magic: thiếu "please" → hỏi "magic word" | two: dùng "a" → khách giơ 2 ngón
   //  tray    = các khối cố định trong khay; foods = số món thêm vào; silly = số từ gây cười
   //  model   = câu mẫu máy đọc khi bé cần thử lại
@@ -689,59 +676,23 @@ const GAME_DATA = {
       model: 'I like {like}. Thank you!',
       success: 'You are welcome!',
     },
-    // --- Vai BỒI BÀN: khách máy gọi món, bé mang ra ---
-    w1: {
-      role: 'waiter', needsTarget: true,
-      npcSay: 'Can I have a {target}, please?',
-      slots: [
-        { cat: 'action',   ok: ['here-is'] },
-        { cat: 'modifier', ok: ['your'] },
-        { cat: 'thing',    ok: 'target' },
-      ],
-      tray: ['i', 'here-is', 'want', 'a', 'two', 'your'], foods: 3, silly: 1,
-      model: 'Here is your {target}.',
-      success: 'Thank you! Yummy!',
-      serves: true,
-    },
-    w2: {
-      role: 'waiter', needsTarget: true, adjs: ['hot', 'yummy'],
-      npcSay: 'Can I have a {adj} {target}, please?',
-      slots: [
-        { cat: 'action',   ok: ['here-is'] },
-        { cat: 'modifier', ok: ['your'] },
-        { cat: 'modifier', ok: 'adj' },
-        { cat: 'thing',    ok: 'target' },
-      ],
-      tray: ['here-is', 'want', 'your', 'a', 'hot', 'yummy'], foods: 3, silly: 1,
-      model: 'Here is your {adj} {target}.',
-      success: 'Thank you! Mmm, so {adj}!',
-      serves: true,
-    },
   },
 
   // TÌNH HUỐNG "SAI LẦM HÀI HƯỚC" – không bao giờ nói "sai", không có âm báo lỗi.
-  //  anim  = hoạt cảnh; lines = [ai nói, câu nói]. "npc" = nhân vật máy (bồi bàn hoặc khách).
-  //  Có thể tách câu theo vai: customer: [...] (bé là khách), waiter: [...] (bé là bồi bàn).
+  //  anim  = hoạt cảnh; lines = [ai nói, câu nói]. "npc" = bồi bàn (nhân vật máy).
   reactions: {
-    shoe: { anim: 'onHead',
-      waiter:   [['npc', 'Oh! That is a shoe, not a {target}! Can I have a {target}, please?']],
-      customer: [['npc', 'Oh! A shoe? You can not eat a shoe! Let us try again!']] },
-    hat: { anim: 'onHead',
-      waiter:   [['npc', 'A hat? I can not eat a hat! Can I have a {target}, please?']],
-      customer: [['npc', 'A hat? Silly! You can not eat a hat!']] },
+    shoe: { anim: 'onHead', lines: [['npc', 'Oh! A shoe? You can not eat a shoe! Let us try again!']] },
+    hat:  { anim: 'onHead', lines: [['npc', 'A hat? Silly! You can not eat a hat!']] },
     cat:  { anim: 'catJump',    lines: [['cat', 'Meow!'], ['npc', 'Ha ha! That is a cat!']] },
     ball: { anim: 'ballBounce', lines: [['npc', 'Boing boing! That is a ball!']] },
     twoFingers: { anim: 'twoFingers', lines: [['friend', 'Two, please!']] },
     magicWord:  { anim: 'magic',      lines: [['npc', 'What is the magic word?']] },
-    wrongFood:  { anim: 'wrongFood',  lines: [['npc', 'Hmm, that is a {got}. Can I have a {target}, please?']] },
-    wrongAdj:   { anim: 'think',      lines: [['npc', 'I want a {adj} {target}, please!']] },
     tryAgain:   { anim: 'think',      lines: [['npc', 'Hmm? Let us try again!'], ['npc', '{model}']] },
   },
 
   // Mỗi ca chơi = 3 câu
   sessions: {
     customer: ['c1', 'c2', 'c3'],
-    waiter:   ['w1', 'w2', 'w2'],
   },
 
   // TỦ ĐỒ trước ca chơi: chạm để nghe tên tiếng Anh và mặc lên nhân vật (hình SVG tự vẽ)
@@ -757,7 +708,6 @@ const GAME_DATA = {
   // Gợi ý cho ba mẹ (chế độ chơi cùng). Câu tiếng Anh lấy từ npcSay và model của mỗi lượt.
   coplay: {
     customer: 'Ba/mẹ hỏi con:',
-    waiter:   'Ba/mẹ đóng vai khách:',
   },
 
   // Cài đặt mặc định
@@ -794,6 +744,12 @@ function freshProgress() {
   };
 }
 const progress = Object.assign(freshProgress(), Store.load());
+// Save cũ (bản có chế độ Bồi bàn): bỏ các từ không còn trong game để báo cáo không lỗi
+(function migrateOldSave() {
+  if (!progress.wordsUsed || typeof progress.wordsUsed !== 'object') progress.wordsUsed = {};
+  Object.keys(progress.wordsUsed).forEach(id => { if (!GAME_DATA.words[id]) delete progress.wordsUsed[id]; });
+  delete progress.role;
+})();
 function saveProgress() { Store.save(progress); }
 
 /* --- Ngày tháng & chuỗi ngày --- */
@@ -905,10 +861,8 @@ const state = {
   placed: [],       // các ô trong thanh câu: null hoặc {id, trayIdx}
   busy: false,      // đang chạy hoạt cảnh → tạm khóa thao tác
   bubble: { text: '', pitch: 1 },
-  npc: null,        // nhân vật máy của ca này (bồi bàn hoặc một vị khách)
+  npc: null,        // nhân vật máy của ca này (bồi bàn)
   lastFood: null,   // món bé gọi gần nhất (để hỏi "Do you like ...?")
-  usedTargets: [],  // món khách đã gọi trong ca (để không lặp)
-  usedAdjs: [],     // tính chất (hot/yummy) đã dùng trong ca
   sessionStars: 0,
   sessionId: 0,     // tăng mỗi khi bắt đầu / rời ca chơi (để hủy hoạt cảnh cũ)
 };
@@ -951,21 +905,18 @@ function sentenceText(ids) {
 // Món ăn bé đang chọn trong thanh câu (nếu chưa có thì lấy món đầu tiên trong khay)
 function chosenFood() {
   const ids = placedIds();
-  return ids.find(id => WORDS[id].food) || state.turn.target || state.turn.tray.find(id => WORDS[id].food);
+  return ids.find(id => WORDS[id].food) || state.turn.tray.find(id => WORDS[id].food);
 }
 const likeForm = id => WORDS[id].like || WORDS[id].text;
 
-// Thay chỗ trống {target} {adj} {like} {food} {foods} {got} {model} trong câu thoại
+// Thay chỗ trống {like} {food} {foods} {model} trong câu thoại
 function fill(str, extra = {}) {
   const t = state.turn;
   const food = extra.food || chosenFood();
   const map = {
-    target: t.target ? WORDS[t.target].text : '',
-    adj: t.adj || '',
     like: likeForm(state.lastFood || food),
     food: WORDS[food].text,
     foods: WORDS[food].plural,
-    got: extra.got ? WORDS[extra.got].text : '',
   };
   return str.replace(/\{(\w+)\}/g, (m, k) => (k === 'model' ? fill(t.def.model, extra) : (k in map ? map[k] : m)));
 }
@@ -988,11 +939,9 @@ function say(who, text, pic = '') {
   setBubble(p.emoji, text, pic, p.pitch);
   return sayBubble(RATE_NORMAL);
 }
-// Hình minh họa trong bong bóng: món khách gọi (kèm 🔥/😋 nếu có)
+// Hình minh họa trong bong bóng: ✌️ ở lượt cần gọi "two"
 function turnPicture() {
-  const t = state.turn;
-  if (!t.target) return t.def.slots.some(s => s.two) ? '✌️' : '';
-  return (t.adj ? WORDS[t.adj].emoji : '') + WORDS[t.target].emoji;
+  return state.turn.def.slots.some(s => s.two) ? '✌️' : '';
 }
 
 /* =========================================================
@@ -1004,11 +953,9 @@ function startSession(role) {
   state.turnKeys = GAME_DATA.sessions[role];
   state.turnIndex = 0;
   state.lastFood = null;
-  state.usedTargets = [];
-  state.usedAdjs = [];
   state.sessionStars = 0;
-  // Vai Khách: nhân vật máy là bồi bàn. Vai Bồi bàn: nhân vật máy là một vị khách ngẫu nhiên.
-  state.npc = role === 'customer' ? GAME_DATA.people.waiter : pick(GAME_DATA.people.customers);
+  // Nhân vật máy là bồi bàn (bé đóng vai khách gọi món bằng tiếng Anh)
+  state.npc = GAME_DATA.people.waiter;
   $('#npc .face').textContent = state.npc.emoji;
   showScreen('play');
   updateStars();
@@ -1017,23 +964,11 @@ function startSession(role) {
   if (pendingCard) { const id = pendingCard; pendingCard = null; setTimeout(() => placeCardWord(id), 400); }
 }
 
-// Chuẩn bị một lượt: chọn món khách gọi, món ngẫu nhiên, từ gây cười; xếp khay theo nhóm màu
+// Chuẩn bị một lượt: chọn món ngẫu nhiên, từ gây cười; xếp khay theo nhóm màu
 function makeTurn(key) {
   const def = GAME_DATA.turns[key];
-  const t = { key, def, target: null, adj: null };
-  if (def.needsTarget) {
-    t.target = pick(FOOD_IDS.filter(f => !state.usedTargets.includes(f)));
-    state.usedTargets.push(t.target);
-  }
-  if (def.adjs) {
-    // Tính chất: ưu tiên cái chưa dùng trong ca (lượt này "hot" thì lượt sau "yummy"), tránh "hot hot dog"
-    let adjs = def.adjs.filter(a => !(t.target && WORDS[t.target].text.includes(a)));
-    const fresh = adjs.filter(a => !state.usedAdjs.includes(a));
-    t.adj = pick(fresh.length ? fresh : adjs);
-    state.usedAdjs.push(t.adj);
-  }
-  let foods = shuffle(FOOD_IDS.filter(f => f !== t.target)).slice(0, def.foods - (t.target ? 1 : 0));
-  if (t.target) foods.push(t.target);
+  const t = { key, def };
+  const foods = shuffle(FOOD_IDS).slice(0, def.foods);
   const silly = shuffle(SILLY_IDS).slice(0, def.silly || 0);
   const ids = def.tray.concat(foods, silly);
   // Xếp khay theo thứ tự màu (xanh dương → đỏ → vàng → xanh lá → tím), trong mỗi màu thì trộn
@@ -1238,28 +1173,23 @@ async function saySentence(slow) {
 /* So câu bé ghép với mẫu. Kết quả:
    {type:'ok'} – câu đúng
    {type:<tên tình huống>, slots:[ô cần sửa], got:<từ>} – một tình huống hài hước để bé sửa lại.
-   Thứ tự ưu tiên: từ gây cười → sai cấu trúc → thiếu "two" → nhầm món → nhầm tính chất → thiếu "please". */
+   Thứ tự ưu tiên: từ gây cười → sai cấu trúc → thiếu "two" → thiếu "please". */
 function evaluate() {
   const t = state.turn, slots = t.def.slots;
   const wrong = [];
-  let two = null, food = null, adj = null, magic = null;
+  let two = null, magic = null;
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i], p = state.placed[i], id = p && p.id;
     if (id && WORDS[id].silly) return { type: WORDS[id].silly, slots: [i], got: id };
     if (slot.magic) { if (id !== 'please') magic = { type: 'magicWord', slots: id ? [i] : [] }; continue; }
     if (!id) continue;
     if (slot.ok === 'food') { if (!WORDS[id].food) wrong.push(i); }
-    else if (slot.ok === 'target') { if (id !== t.target) food = { type: 'wrongFood', slots: [i], got: id }; }
-    else if (slot.ok === 'adj') {
-      if (id === t.adj) continue;
-      if (t.def.adjs.includes(id)) adj = { type: 'wrongAdj', slots: [i] }; else wrong.push(i);
-    }
     else if (!slot.ok.includes(id)) {
       if (slot.two && id === 'a') two = { type: 'twoFingers', slots: [i] }; else wrong.push(i);
     }
   }
   if (wrong.length) return { type: 'tryAgain', slots: wrong };
-  return two || food || adj || magic || { type: 'ok' };
+  return two || magic || { type: 'ok' };
 }
 
 async function handleResult(res) {
@@ -1276,8 +1206,7 @@ async function handleResult(res) {
     if (def.role === 'customer' && def.serves) state.lastFood = food;
     if (def.serves) {
       const n = ids.includes('two') ? 2 : 1;
-      const extra = state.turn.adj ? WORDS[state.turn.adj].emoji : '';
-      $('#plate').innerHTML = `<span class="served">${WORDS[food].emoji.repeat(n)}${extra}</span>`;
+      $('#plate').innerHTML = `<span class="served">${WORDS[food].emoji.repeat(n)}</span>`;
     }
     flyStar($('#btnSentence'));
     state.sessionStars++;
@@ -1293,7 +1222,7 @@ async function handleResult(res) {
   playReaction(r.anim, res);
   const lines = r[state.role] || r.lines;
   for (const [who, text] of lines) {
-    await say(who, fill(text, { food, got: res.got }), turnPicture());
+    await say(who, fill(text, { food }), turnPicture());
     if (left()) return;
   }
   res.slots.forEach(i => { state.placed[i] = null; });
@@ -1355,7 +1284,7 @@ function fxAt(target, emoji, cls, where = 'top') {
   return el;
 }
 // Người đóng vai khách: vai Khách → nhân vật của bé, vai Bồi bàn → nhân vật máy
-const customerEl = () => (state.role === 'customer' ? $('#player') : $('#npc'));
+const customerEl = () => $('#player');   // bé là khách
 
 function playReaction(anim, res) {
   const plate = $('#plate');
@@ -1376,10 +1305,6 @@ function playReaction(anim, res) {
       break;
     case 'magic':       // thiếu "please" → bồi bàn mỉm cười, lấp lánh
       fxAt($('#npc'), '😊✨', 'pop-up');
-      break;
-    case 'wrongFood':   // mang nhầm món → món hiện trên đĩa, khách lắc đầu
-      fxAt(plate, got.emoji, 'on-plate', 'mid');
-      restartAnim(customerEl(), 'shake');
       break;
     default:            // nghiêng đầu suy nghĩ
       fxAt($('#npc'), '🤔', 'pop-up');
@@ -1424,7 +1349,6 @@ function chooseRole(role) {
   openWardrobe();
 }
 $('#btnRoleCustomer').addEventListener('click', () => chooseRole('customer'));
-$('#btnRoleWaiter').addEventListener('click', () => chooseRole('waiter'));
 function goHome() { state.sessionId++; Speech.stop(); state.busy = false; state.turn = null; if (isTimeUp()) showLock(); else { renderDragon(); showScreen('home'); } }
 $('#btnHome').addEventListener('click', goHome);
 $('#btnEndHome').addEventListener('click', goHome);
@@ -1633,14 +1557,6 @@ function parseCard(text) {
   return WORDS[id] ? id : null;
 }
 function cardUrl(id) { return SITE_URL + (SITE_URL.includes('?') ? '&' : '?') + 'card=' + encodeURIComponent(id); }
-// Từ chỉ xuất hiện ở vai Bồi bàn (Here is, your, hot, yummy) → mở vai Bồi bàn; còn lại → vai Khách
-function roleForWord(id) {
-  const inRole = r => GAME_DATA.sessions[r].some(k => {
-    const d = GAME_DATA.turns[k];
-    return d.tray.includes(id) || d.slots.some(s => Array.isArray(s.ok) && s.ok.includes(id));
-  });
-  return !inRole('customer') && inRole('waiter') ? 'waiter' : 'customer';
-}
 // Đưa một từ (từ thẻ) vào thanh câu: thêm vào khay nếu chưa có, đặt vào ô trống đầu tiên cùng màu
 function placeCardWord(id) {
   if (!state.turn || !WORDS[id]) return;
@@ -1665,7 +1581,7 @@ function showCard(id) {
 }
 $('#btnCardGo').addEventListener('click', () => {
   Speech.speak(WORDS[pendingCard].text);
-  chooseRole(roleForWord(pendingCard));   // qua Tủ đồ rồi vào ca; khối được đặt khi ca bắt đầu
+  chooseRole('customer');   // qua Tủ đồ rồi vào ca; khối được đặt khi ca bắt đầu
 });
 
 /* =========================================================
