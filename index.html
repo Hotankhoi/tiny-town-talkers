@@ -355,6 +355,132 @@ body{
   .card{width:60mm;height:86mm;aspect-ratio:auto;break-inside:avoid;page-break-inside:avoid;border-style:dashed}
 }
 
+/* =========================================================
+   CHẾ ĐỘ MỚI: ĐI MUA SẮM 🛒 & TRÒ CHUYỆN 💬 (Scenario Engine)
+   ========================================================= */
+.role-label{font-size:16px;font-weight:900;color:var(--ink);line-height:1.1;max-width:130px}
+#btnModeShop{background:#e0f2fe}
+#btnModeTalk{background:#fce7f3}
+#screen-home{overflow-y:auto}
+@media (max-width:480px){
+  .role-btn{min-width:104px;min-height:120px;border-radius:28px;padding:6px}
+  .role-pic{font-size:44px}
+  .roles{gap:12px}
+  .dragon-wrap{font-size:56px}
+}
+/* Ẩn nút loa tiếng Việt nếu máy không có giọng Việt */
+body.no-vi .vi-only{display:none!important}
+
+/* --- Danh sách tình huống --- */
+#screen-scList{background:#f0f9ff;padding:8px;gap:8px}
+.list-title{margin:0;font-size:26px}
+.sc-list{flex:1;overflow-y:auto;padding:4px 4px 16px}
+.sc-group{margin:6px 0 4px;font-size:20px;font-weight:900}
+.sc-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:10px}
+.sc-card{position:relative;min-height:150px;border:none;border-radius:24px;background:#fff;cursor:pointer;font:inherit;color:var(--ink);
+  box-shadow:0 6px 0 rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;text-align:center}
+.sc-card .e{font-size:46px;line-height:1}
+.sc-card .t{font-size:17px;font-weight:800;line-height:1.2}
+.sc-card .lv{font-size:13px;font-weight:800;background:#e0e7ff;border-radius:10px;padding:2px 8px}
+.sc-card .st{font-size:18px;letter-spacing:1px}
+.sc-card.locked{background:#e5e7eb;opacity:.75}
+.sc-card.locked::after{content:"🔒";position:absolute;top:8px;right:10px;font-size:26px}
+.sc-card.wiggle,.item.wiggle{animation:wiggle .45s}
+
+/* --- Màn chơi tình huống --- */
+#screen-sc{display:none;gap:8px;padding:8px;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(70px,1fr) auto;
+  grid-template-areas:"top" "scene" "info" "chat" "actions"}
+#screen-sc.active{display:grid}
+@media (min-width:900px), (orientation:landscape) and (min-width:600px){
+  #screen-sc{grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-rows:auto auto auto minmax(0,1fr);
+    grid-template-areas:"top top" "scene actions" "info actions" "chat actions"}
+  #screen-sc .sc-actions{max-height:none}
+  #screen-sc .sc-scene{min-height:220px}
+  #screen-sc .npc-face{height:180px}
+}
+.sc-title{flex:1;min-width:0;font-size:19px;font-weight:900;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-scene{grid-area:scene;position:relative;border-radius:24px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;
+  gap:12px;padding:8px 10px 6px;min-height:150px}
+.sc-decor{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:28px;letter-spacing:10px;opacity:.85;pointer-events:none}
+.npc-box{position:relative;display:flex;flex-direction:column;align-items:center}
+.npc-face{height:120px;width:auto;display:block;transition:transform .2s}
+.npc-face.jump{animation:jump .6s ease}
+.npc-name{font-size:15px;font-weight:900;background:rgba(255,255,255,.85);border-radius:10px;padding:2px 10px}
+.mood-chip{position:absolute;top:2px;right:-34px;font-size:15px;font-weight:800;background:#fff;border-radius:14px;padding:3px 8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap}
+.sc-info{grid-area:info;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:16px;font-weight:800}
+.sc-info:empty{display:none}
+.chip{background:#fff;border-radius:14px;padding:4px 10px;box-shadow:0 2px 0 rgba(0,0,0,.08);display:inline-flex;gap:4px;align-items:center}
+.chip.ok{background:#dcfce7}
+.chip.wallet{background:#fef9c3}
+.sc-chat{grid-area:chat;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px;min-height:0;user-select:text;-webkit-user-select:text}
+.msg{max-width:88%;border-radius:18px;padding:8px 12px;font-size:18px;line-height:1.35;box-shadow:0 2px 0 rgba(0,0,0,.06);animation:serve .25s ease}
+.msg b{display:block;font-size:13px;opacity:.7}
+.msg.npc{align-self:flex-start;background:#fff;border-bottom-left-radius:4px}
+.msg.kid{align-self:flex-end;background:#dbeafe;border-bottom-right-radius:4px}
+.msg.coach{align-self:center;max-width:96%;background:#f1f5f9;border:3px solid #cbd5e1}
+.msg.coach.great{background:#dcfce7;border-color:#22c55e}
+.msg.coach.ok{background:#fef9c3;border-color:#eab308}
+.msg.coach.try_again{background:#e0f2fe;border-color:#38bdf8}
+.sc-actions{grid-area:actions;overflow-y:auto;max-height:52vh;display:flex;flex-direction:column;gap:8px;padding:2px}
+.choice-row{display:flex;gap:6px;align-items:stretch}
+.choice{flex:1;min-height:64px;border:none;border-radius:20px;background:#fff;cursor:pointer;font:inherit;font-size:19px;font-weight:700;color:var(--ink);
+  display:flex;align-items:center;gap:10px;padding:8px 14px;text-align:left;box-shadow:0 5px 0 rgba(0,0,0,.12);line-height:1.25}
+.choice .ce{font-size:32px;flex:none}
+@media (hover:hover) and (pointer:fine){ .choice:hover:not(:disabled){transform:scale(1.02);background:#fffbeb} }
+.choice.tried{opacity:.4}
+.hint-glow{outline:5px solid #facc15;outline-offset:2px;animation:blink 1.2s ease-in-out infinite}
+.say-btn{min-width:64px;font-size:26px}
+.act-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.act-btn{min-height:68px;min-width:160px;padding:0 22px;border:none;border-radius:22px;font:inherit;font-size:22px;font-weight:900;cursor:pointer;
+  background:#22c55e;color:#fff;box-shadow:0 6px 0 #15803d}
+.act-btn.retry{background:#38bdf8;box-shadow:0 6px 0 #0369a1}
+.act-btn:active{transform:translateY(3px)}
+.panel-label{font-size:17px;font-weight:900;margin:4px 2px 0}
+/* Cảm xúc */
+.feel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.feel-btn{min-height:96px;border:none;border-radius:22px;background:#fff;cursor:pointer;font:inherit;font-size:19px;font-weight:800;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.feel-btn .fe{font-size:44px;line-height:1}
+.feel-btn.tried{opacity:.4}
+/* Kệ hàng & giỏ */
+.basket{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:64px;background:#fef3c7;border-radius:18px;padding:6px 10px}
+.basket-chip{min-height:52px;min-width:64px;border:none;border-radius:16px;background:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer;padding:4px 10px;
+  box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.zone{background:#fff;border-radius:18px;padding:6px 8px 10px}
+.zone-name{font-size:17px;font-weight:900;margin:2px 4px 6px}
+.shelf{display:flex;flex-wrap:wrap;gap:8px}
+.item{width:104px;min-height:104px;border:none;border-radius:16px;background:#f8fafc;cursor:pointer;font:inherit;color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.06)}
+.item .ie{font-size:40px;line-height:1}
+.item .in{font-size:15px;font-weight:800;line-height:1.15;text-align:center}
+.item .ip{font-size:13px;font-weight:800;color:#b45309}
+.item.soldout{opacity:.45;cursor:not-allowed;background:repeating-linear-gradient(45deg,#f1f5f9 0 8px,#e2e8f0 8px 16px)}
+.item.bounce{animation:bounce .45s}
+/* Tiền Việt Nam (vẽ đơn giản: màu + số to, không giống tiền thật) */
+.money-row{display:flex;flex-wrap:wrap;gap:8px;min-height:72px;align-items:center;background:#f8fafc;border-radius:18px;padding:6px}
+.note{width:108px;height:64px;border:3px solid rgba(0,0,0,.25);border-radius:10px;cursor:pointer;font:inherit;font-size:21px;font-weight:900;color:#1f2937;
+  display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.note::before{content:"";position:absolute;inset:6px;border:2px dashed rgba(255,255,255,.7);border-radius:6px;pointer-events:none}
+.note small{font-size:12px;margin-left:2px}
+.n1000{background:#d6c7a1}.n2000{background:#c8a27a}.n5000{background:#a5b4fc}.n10000{background:#fde68a}
+.n20000{background:#7dd3fc}.n50000{background:#f9a8d4}.n100000{background:#86efac}
+.note.static{cursor:default}
+.pay-sum{font-size:20px;font-weight:900}
+/* Màn hoàn thành tình huống */
+#screen-scDone{align-items:center;justify-content:center;gap:14px;padding:16px;text-align:center;background:radial-gradient(#fff,#d9f99d);overflow-y:auto}
+.sticker{font-size:110px;line-height:1;filter:drop-shadow(0 6px 0 rgba(0,0,0,.15));animation:popUpBig .7s cubic-bezier(.3,1.6,.6,1)}
+@keyframes popUpBig{from{transform:scale(0) rotate(-30deg)}}
+.done-title{font-size:24px;font-weight:900;margin:0}
+.home-check{background:#fff;border-radius:18px;padding:10px 16px;font-size:18px;text-align:left;max-width:420px}
+.home-check li{margin:4px 0}
+/* Sổ tiến bộ */
+.skill-row{display:grid;grid-template-columns:1fr 120px;gap:4px 10px;align-items:center;margin:6px 0}
+.skill-bar{height:14px;border-radius:7px;background:#e2e8f0;overflow:hidden}
+.skill-bar span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#16a34a)}
+.skill-lv{grid-column:1 / -1;font-size:14px;color:#64748b;margin-top:-4px}
+
 /* Điện thoại xoay ngang (màn hình thấp ≤ 500px): thanh nút thành cột bên trái để dành chỗ cho khối từ */
 @media (orientation:landscape) and (max-height:500px){
   #screen-play{
@@ -393,6 +519,13 @@ body{
   .tray{gap:14px 8px;padding:14px 4px 6px}
   #screen-play{gap:6px;padding:6px}
 }
+/* Mua sắm & Trò chuyện trên điện thoại xoay ngang: cảnh thấp lại để còn chỗ cho khung chat */
+@media (orientation:landscape) and (max-height:500px){
+  #screen-sc{gap:6px;padding:6px}
+  #screen-sc .sc-scene{min-height:0}
+  #screen-sc .npc-face{height:96px}
+  #screen-sc .sc-decor{display:none}
+}
 </style>
 </head>
 <body>
@@ -415,7 +548,14 @@ body{
     <!-- Chọn vai: chỉ dùng hình, không cần đọc -->
     <div class="roles">
       <button class="role-btn blink" id="btnRoleCustomer" aria-label="Chơi vai Khách">
-        <span class="role-pic">🧒🍽️</span><span class="role-play">▶</span>
+        <span class="role-pic">🧒🍽️</span><span class="role-label">Gọi món tiếng Anh</span><span class="role-play">▶</span>
+      </button>
+      <!-- Hai chế độ mới (dữ liệu trong scenarios.js). Tự ẩn nếu thiếu file dữ liệu. -->
+      <button class="role-btn blink" id="btnModeShop" aria-label="Đi mua sắm" style="animation-delay:.5s">
+        <span class="role-pic">🛒</span><span class="role-label">Đi mua sắm</span><span class="role-play">▶</span>
+      </button>
+      <button class="role-btn blink" id="btnModeTalk" aria-label="Trò chuyện" style="animation-delay:1s">
+        <span class="role-pic">💬</span><span class="role-label">Trò chuyện</span><span class="role-play">▶</span>
       </button>
     </div>
   </section>
@@ -428,6 +568,50 @@ body{
     <div class="end-buttons">
       <button class="icon-btn" id="btnEndHome" aria-label="Trang chủ">🏠</button>
       <button class="icon-btn big-play blink" id="btnEndAgain" aria-label="Chơi tiếp">▶</button>
+    </div>
+  </section>
+
+  <!-- ===== DANH SÁCH TÌNH HUỐNG (Đi mua sắm / Trò chuyện) ===== -->
+  <section id="screen-scList" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" id="btnListBack" aria-label="Trang chủ">🏠</button>
+      <h2 class="list-title" id="listTitle"></h2>
+    </header>
+    <div class="sc-list" id="scList"></div>
+  </section>
+
+  <!-- ===== CHƠI MỘT TÌNH HUỐNG ===== -->
+  <section id="screen-sc" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" id="btnScBack" aria-label="Quay lại">←</button>
+      <div class="sc-title" id="scTitle"></div>
+      <button class="icon-btn" id="btnHint" aria-label="Gợi ý">💡</button>
+      <button class="icon-btn fs-btn" aria-label="Toàn màn hình">⛶</button>
+    </header>
+    <div class="sc-scene" id="scScene">
+      <div class="sc-decor" id="scDecor"></div>
+      <div class="npc-box">
+        <div id="scFace"></div>
+        <span class="mood-chip hidden" id="scMood"></span>
+        <span class="npc-name" id="scNpcName"></span>
+      </div>
+    </div>
+    <div class="sc-info" id="scInfo"></div>
+    <div class="sc-chat" id="scChat" aria-live="polite"></div>
+    <div class="sc-actions" id="scActions"></div>
+  </section>
+
+  <!-- ===== HOÀN THÀNH TÌNH HUỐNG ===== -->
+  <section id="screen-scDone" class="screen">
+    <div class="sticker" id="doneSticker"></div>
+    <p class="done-title" id="doneTitle"></p>
+    <div class="end-stars" id="doneStars"></div>
+    <div id="doneCheck"></div>
+    <div class="end-dragon" id="doneDragon"></div>
+    <div class="end-buttons">
+      <button class="icon-btn" id="btnDoneList" aria-label="Danh sách tình huống">←</button>
+      <button class="icon-btn" id="btnDoneAgain" aria-label="Chơi lại">🔁</button>
+      <button class="icon-btn big-play blink" id="btnDoneNext" aria-label="Tình huống tiếp theo">▶</button>
     </div>
   </section>
 
@@ -473,6 +657,21 @@ body{
           <button class="seg-btn" data-min="20">20 phút</button>
         </div>
         <label class="toggle"><input type="checkbox" id="coplayToggle"> <span>Chế độ ba mẹ chơi cùng (hiện gợi ý tiếng Việt dưới mỗi lượt)</span></label>
+        <label class="toggle"><input type="checkbox" id="readAloudToggle"> <span>🗣️ Tự đọc to lời nhân vật (chế độ Mua sắm &amp; Trò chuyện)</span></label>
+        <div class="p-label">Tốc độ đọc tiếng Việt:</div>
+        <div class="seg" id="rateSeg">
+          <button class="seg-btn" data-rate="0.7">🐌 Chậm</button>
+          <button class="seg-btn" data-rate="0.9">Vừa</button>
+          <button class="seg-btn" data-rate="1.1">🐇 Nhanh</button>
+        </div>
+        <div class="p-card warn hidden" id="viVoiceWarn" style="margin-top:10px">⚠️ Máy này chưa có giọng đọc tiếng Việt, nên nút 🔊 trong chế độ Mua sắm &amp; Trò chuyện được ẩn. Bé vẫn chơi bình thường bằng cách đọc chữ (hoặc ba mẹ đọc cùng).</div>
+        <label class="toggle"><input type="checkbox" id="teacherToggle"> <span>👩‍🏫 Chế độ giáo viên: mở khóa tất cả tình huống</span></label>
+      </div>
+      <div class="p-card">
+        <h3>📒 Sổ tiến bộ</h3>
+        <div id="skillBook"></div>
+        <div class="p-label">Tình huống đã hoàn thành:</div>
+        <div id="scDoneList"></div>
       </div>
       <div class="p-card">
         <h3>🃏 Thẻ bài thật</h3>
@@ -567,6 +766,8 @@ body{
   </section>
 </div>
 
+<!-- Dữ liệu tình huống của chế độ Đi mua sắm & Trò chuyện (giáo viên/phụ huynh sửa file này) -->
+<script src="scenarios.js"></script>
 <script>
 /* =========================================================
    ĐỊA CHỈ TRANG WEB CỦA GAME – SỬA DUY NHẤT Ở ĐÂY
@@ -741,12 +942,18 @@ function freshProgress() {
     streak: 0, sunDrops: 0, lastFedDay: null, dragonAsleep: false,
     today: null, sessionsToday: 0, playMsToday: 0,
     limitMin: GAME_DATA.settings.limitMin, coplay: false,
+    // Chế độ Mua sắm & Trò chuyện:
+    //  sc = {idTìnhHuống: {stars: sao cao nhất, plays: số lần chơi}}, skills = {idKỹNăng: {plays, stars}}
+    //  readAloud = tự đọc to, viRate = tốc độ đọc tiếng Việt, teacher = chế độ giáo viên (mở khóa tất cả)
+    sc: {}, skills: {}, readAloud: true, viRate: 0.9, teacher: false,
   };
 }
 const progress = Object.assign(freshProgress(), Store.load());
 // Save cũ (bản có chế độ Bồi bàn): bỏ các từ không còn trong game để báo cáo không lỗi
 (function migrateOldSave() {
   if (!progress.wordsUsed || typeof progress.wordsUsed !== 'object') progress.wordsUsed = {};
+  if (!progress.sc || typeof progress.sc !== 'object') progress.sc = {};
+  if (!progress.skills || typeof progress.skills !== 'object') progress.skills = {};
   Object.keys(progress.wordsUsed).forEach(id => { if (!GAME_DATA.words[id]) delete progress.wordsUsed[id]; });
   delete progress.role;
 })();
@@ -796,6 +1003,8 @@ const Speech = {
   supported: 'speechSynthesis' in window,
   voice: null,
   hasEnglish: false,
+  viVoice: null,
+  hasVi: false,
   init() {
     if (!this.supported) return;
     const pick = () => {
@@ -804,6 +1013,11 @@ const Speech = {
       const us = en.filter(v => /^en[-_]US/i.test(v.lang));
       this.voice = us.find(v => v.localService) || us[0] || en.find(v => v.localService) || en[0] || null;
       this.hasEnglish = !!this.voice;
+      // Giọng tiếng Việt cho chế độ Mua sắm & Trò chuyện. Không có → ẩn nút loa (class "no-vi").
+      const vi = voices.filter(v => /^vi([-_]|$)/i.test(v.lang));
+      this.viVoice = vi.find(v => v.localService) || vi[0] || null;
+      this.hasVi = !!this.viVoice;
+      document.body.classList.toggle('no-vi', !this.hasVi);
     };
     pick();
     // Danh sách giọng thường tải chậm → nghe sự kiện voiceschanged
@@ -819,8 +1033,9 @@ const Speech = {
       try {
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US';
-        if (this.voice) u.voice = this.voice;
+        u.lang = opts.lang || 'en-US';
+        const voice = opts.lang ? opts.voice : this.voice;
+        if (voice) u.voice = voice;
         u.rate = rate;
         u.pitch = opts.pitch || 1;
         const done = () => { clearTimeout(fallback); resolve(); };
@@ -830,6 +1045,11 @@ const Speech = {
     });
   },
   stop() { try { this.supported && speechSynthesis.cancel(); } catch (e) {} },
+  // Đọc tiếng Việt (giọng vi-VN, tốc độ theo cài đặt). Máy không có giọng Việt → im lặng, không lỗi.
+  speakVi(text) {
+    if (!this.hasVi || !text) return sleep(250);
+    return this.speak(text, { lang: 'vi-VN', voice: this.viVoice, rate: progress.viRate || 0.9 });
+  },
 };
 Speech.init();
 
@@ -1408,7 +1628,7 @@ function renderDragon() {
    Đếm thời gian khi bé ở Tủ đồ / màn chơi / màn kết thúc và tab đang mở.
    Hết giờ → rồng con ngáp và đi ngủ, game khóa đến hôm sau.
    ========================================================= */
-const COUNTED_SCREENS = ['wardrobe', 'play', 'end'];
+const COUNTED_SCREENS = ['wardrobe', 'play', 'end', 'sc', 'scDone'];
 let tick = 0;
 setInterval(() => {
   const before = progress.today;
@@ -1487,6 +1707,7 @@ function openParent() {
   });
   document.querySelectorAll('#limitSeg .seg-btn').forEach(b => b.classList.toggle('on', +b.dataset.min === progress.limitMin));
   $('#coplayToggle').checked = !!progress.coplay;
+  renderParentExtras();   // cài đặt đọc to / giáo viên + Sổ tiến bộ (phần AA bên dưới)
   showScreen('parent');
 }
 document.querySelectorAll('#limitSeg .seg-btn').forEach(b => b.addEventListener('click', () => {
@@ -1494,8 +1715,8 @@ document.querySelectorAll('#limitSeg .seg-btn').forEach(b => b.addEventListener(
 }));
 $('#coplayToggle').addEventListener('change', e => { progress.coplay = e.target.checked; saveProgress(); });
 $('#btnReset').addEventListener('click', () => {
-  if (!confirm('Xóa toàn bộ tiến độ của bé (sao, chuỗi ngày, báo cáo, thời gian hôm nay)?\nCài đặt giới hạn giờ và chế độ chơi cùng được giữ lại.')) return;
-  const keep = { limitMin: progress.limitMin, coplay: progress.coplay };
+  if (!confirm('Xóa toàn bộ tiến độ của bé (sao, chuỗi ngày, báo cáo, Sổ tiến bộ, thời gian hôm nay)?\nCác cài đặt được giữ lại.')) return;
+  const keep = { limitMin: progress.limitMin, coplay: progress.coplay, readAloud: progress.readAloud, viRate: progress.viRate, teacher: progress.teacher };
   Object.assign(progress, freshProgress(), keep);
   saveProgress();
   openParent();
@@ -1681,6 +1902,664 @@ function openPrint() {
 $('#btnPrintCards').addEventListener('click', openPrint);
 $('#btnPrintNow').addEventListener('click', () => window.print());
 $('#btnPrintBack').addEventListener('click', openParent);
+
+/* =========================================================
+   AA. CHẾ ĐỘ "ĐI MUA SẮM" 🛒 & "TRÒ CHUYỆN" 💬 – SCENARIO ENGINE
+   ---------------------------------------------------------
+   Engine dùng chung, chạy theo DỮ LIỆU trong file scenarios.js (window.TT_DATA).
+   Mỗi tình huống là một "cây hội thoại" gồm các nút (nodes). Loại nút:
+     talk    – nhân vật nói, bé chọn 1 trong 2–4 câu trả lời
+     feeling – "Bạn ấy đang cảm thấy thế nào?" bé chọn cảm xúc
+     shop    – tìm đồ trên kệ, cho vào giỏ theo danh sách
+     pay     – chọn tờ tiền trong ví để trả (có thể phải bỏ bớt món nếu không đủ tiền)
+     change  – kiểm tra tiền thối
+     end     – câu kết, rồi sang màn hoàn thành
+   Nguyên tắc: KHÔNG BAO GIỜ hiện chữ "SAI". Lựa chọn chưa tốt → nhân vật phản ứng tự nhiên,
+   rồng 🐉 gợi ý nhẹ nhàng và cho bé chọn lại.
+   ========================================================= */
+const TT = window.TT_DATA || null;   // null nếu thiếu file scenarios.js → ẩn 2 chế độ mới, game vẫn chạy
+
+// Trạng thái của tình huống đang chơi
+const sc = {
+  def: null, nodeId: null, node: null, mode: 'shopping',
+  sid: 0,             // mã lượt chơi: đổi khi rời màn → hủy các lời thoại đang chờ
+  attempted: {},      // nút nào đã chọn lần đầu (để tính sao theo lựa chọn ĐẦU TIÊN)
+  scored: 0, greatFirst: 0,
+  tried: new Set(),   // các lựa chọn đã thử ở nút hiện tại (làm mờ đi)
+  order: {},          // thứ tự hiển thị lựa chọn (trộn 1 lần, giữ nguyên khi thử lại)
+  hintOn: false, rerender: null,
+  basket: {}, wallet: [], given: [], paid: 0, total: 0,
+  flags: {},          // cờ do lựa chọn bật lên, vd. flags.sub = đã đồng ý lấy món thay thế
+};
+
+/* --- Tiện ích --- */
+const fmtMoney = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
+const itemOf = id => TT.items[id] || { name: id, emoji: '❓', price: 0, zone: 'home' };
+function elt(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function speakAuto(text) { return progress.readAloud ? Speech.speakVi(text) : sleep(150); }
+function scenariosOf(mode) { return TT ? TT.scenarios.filter(s => s.mode === mode) : []; }
+function fillSc(text) {
+  return String(text || '')
+    .replace(/\{total\}/g, fmtMoney(sc.total))
+    .replace(/\{paid\}/g, fmtMoney(sc.paid))
+    .replace(/\{change\}/g, fmtMoney(Math.max(0, sc.paid - sc.total)));
+}
+
+/* --- Mở khóa dần: cấp 2 mở khi xong ≥ 2 tình huống cấp 1 (cùng chế độ), cấp 3 tương tự --- */
+function isUnlocked(s) {
+  if (progress.teacher || s.level <= 1) return true;
+  const prev = scenariosOf(s.mode).filter(x => x.level === s.level - 1);
+  const done = prev.filter(x => progress.sc[x.id]).length;
+  return done >= Math.min(TT.unlockNeed || 2, prev.length);
+}
+
+/* =========================================================
+   AA1. KHUÔN MẶT NHÂN VẬT (SVG vẽ bằng code) – 8 biểu cảm rõ ràng
+   ========================================================= */
+function moodFeatures(mood) {
+  const dot = (x) => `<circle cx="${x}" cy="58" r="4.5" fill="#1f2937"/>`;
+  const wide = (x) => `<circle cx="${x}" cy="58" r="8" fill="#fff" stroke="#1f2937" stroke-width="2"/><circle cx="${x}" cy="59" r="3.5" fill="#1f2937"/>`;
+  const line = (d, w = 3.5) => `<path d="${d}" stroke="#1f2937" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+  const cheeks = '<circle cx="38" cy="72" r="6" fill="#fca5a5" opacity=".7"/><circle cx="82" cy="72" r="6" fill="#fca5a5" opacity=".7"/>';
+  switch (mood) {
+    case 'happy':     return line('M40 60 Q46 52 52 60') + line('M68 60 Q74 52 80 60') + '<path d="M44 72 Q60 92 76 72 Z" fill="#b91c1c"/>' + cheeks;
+    case 'sad':       return dot(46) + dot(74) + line('M38 48 L52 43', 3) + line('M68 43 L82 48', 3) + line('M48 82 Q60 72 72 82') +
+                             '<path d="M38 66 q-4 8 0 10 q4 -2 0 -10z" fill="#60a5fa"/>';
+    case 'angry':     return dot(46) + dot(74) + line('M37 43 L53 50', 4) + line('M67 50 L83 43', 4) + line('M48 82 Q60 74 72 82') +
+                             '<circle cx="38" cy="72" r="7" fill="#f87171" opacity=".6"/><circle cx="82" cy="72" r="7" fill="#f87171" opacity=".6"/>';
+    case 'scared':    return wide(46) + wide(74) + line('M38 44 Q45 38 52 42', 3) + line('M68 42 Q75 38 82 44', 3) +
+                             line('M47 80 q4 -4 8 0 q4 4 8 0 q4 -4 8 0', 3) + '<path d="M94 40 q-5 9 0 12 q5 -3 0 -12z" fill="#7dd3fc"/>';
+    case 'surprised': return wide(46) + wide(74) + line('M38 42 Q45 35 52 40', 3) + line('M68 40 Q75 35 82 42', 3) +
+                             '<ellipse cx="60" cy="80" rx="6" ry="8" fill="#7f1d1d"/>';
+    case 'confused':  return dot(46) + dot(74) + line('M38 46 Q45 39 52 44', 3) + line('M68 47 L82 47', 3) + line('M50 80 L70 75') +
+                             '<text x="92" y="34" font-size="22" font-weight="900" fill="#7c3aed">?</text>';
+    case 'worried':   return dot(46) + dot(74) + line('M38 47 L52 43', 3) + line('M68 43 L82 47', 3) + line('M49 80 q5.5 -4 11 0 q5.5 4 11 0', 3);
+    default:          return dot(46) + dot(74) + line('M50 77 Q60 82 70 77');   // neutral – bình thường
+  }
+}
+function faceSVG(lookKey, mood) {
+  const L = Object.assign({ skin: '#f8d5b8', hair: '#3b2a1a', style: 'short', shirt: '#60a5fa' }, TT.looks[lookKey] || {});
+  let s = '<svg viewBox="0 0 120 130" class="npc-face" role="img" aria-label="' + esc(TT.emotions[mood] ? TT.emotions[mood].label : '') + '">';
+  s += `<path d="M16 130 Q18 96 60 94 Q102 96 104 130Z" fill="${L.shirt}"/>`;                    // áo
+  if (L.tag) s += '<rect x="72" y="106" width="20" height="11" rx="2" fill="#fff" stroke="#94a3b8"/>'; // bảng tên nhân viên
+  if (L.style === 'long') s += `<path d="M22 56 Q18 100 34 106 L86 106 Q102 100 98 56Z" fill="${L.hair}"/>`;
+  if (L.style === 'pigtails') s += `<circle cx="22" cy="62" r="11" fill="${L.hair}"/><circle cx="98" cy="62" r="11" fill="${L.hair}"/>`;
+  s += `<rect x="52" y="84" width="16" height="14" fill="${L.skin}"/><circle cx="60" cy="58" r="34" fill="${L.skin}"/>`;  // cổ + mặt
+  if (['short', 'long', 'pigtails'].includes(L.style)) s += `<path d="M26 54 Q28 20 60 22 Q92 20 94 54 Q86 38 60 36 Q34 38 26 54Z" fill="${L.hair}"/>`;
+  if (L.style === 'bun') s += `<circle cx="60" cy="20" r="11" fill="${L.hair}"/><path d="M26 54 Q28 24 60 26 Q92 24 94 54 Q80 40 60 40 Q40 40 26 54Z" fill="${L.hair}"/>`;
+  if (L.style === 'bald') s += `<path d="M28 60 Q26 46 34 40 M92 60 Q94 46 86 40" stroke="${L.hair}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  if (L.hat === 'police') s += '<path d="M24 38 Q60 6 96 38 L92 44 L28 44Z" fill="#166534"/><rect x="26" y="41" width="68" height="7" rx="3" fill="#0f172a"/><circle cx="60" cy="28" r="5" fill="#facc15"/>';
+  if (L.hat === 'cap') s += `<path d="M28 44 Q30 16 60 18 Q90 16 92 44Z" fill="${L.hatColor || '#ef4444'}"/><path d="M58 44 L106 46 Q102 52 58 50Z" fill="${L.hatColor || '#ef4444'}"/>`;
+  s += moodFeatures(mood);
+  if (L.glasses) s += '<g fill="none" stroke="#334155" stroke-width="2.5"><circle cx="46" cy="58" r="10"/><circle cx="74" cy="58" r="10"/><path d="M56 58h8"/></g>';
+  return s + '</svg>';
+}
+
+/* =========================================================
+   AA2. DANH SÁCH TÌNH HUỐNG
+   ========================================================= */
+function openModeList(mode) {
+  if (!TT) return;
+  if (isTimeUp()) { showLock(); return; }
+  sc.mode = mode;
+  const m = TT.modes[mode];
+  $('#listTitle').textContent = m.emoji + ' ' + m.title;
+  const box = $('#scList');
+  box.innerHTML = '';
+  const all = scenariosOf(mode);
+  // Trò chuyện: chia theo nhóm. Mua sắm: chia theo cấp độ.
+  const groups = mode === 'talk'
+    ? TT.talkGroups.map(g => ({ title: g.emoji + ' ' + g.title, items: all.filter(s => s.group === g.id) }))
+    : [1, 2, 3].map(l => ({ title: '⭐'.repeat(l) + ' Cấp ' + l, items: all.filter(s => s.level === l) }));
+  groups.filter(g => g.items.length).forEach(g => {
+    box.appendChild(elt('div', 'sc-group', esc(g.title)));
+    const cards = elt('div', 'sc-cards');
+    g.items.forEach(s => {
+      const rec = progress.sc[s.id];
+      const best = rec ? rec.stars : 0;
+      const open = isUnlocked(s);
+      const b = elt('button', 'sc-card' + (open ? '' : ' locked'),
+        `<span class="e">${rec ? (s.sticker || s.emoji) : s.emoji}</span><span class="t">${esc(s.title)}</span>` +
+        `<span class="lv">Cấp ${s.level}</span><span class="st">${'⭐'.repeat(best)}${'☆'.repeat(3 - best)}</span>`);
+      b.type = 'button';
+      b.setAttribute('aria-label', s.title + (open ? '' : ' (chưa mở khóa)'));
+      b.addEventListener('click', () => {
+        if (open) { startScenario(s); return; }
+        restartAnim(b, 'wiggle');
+        Speech.speakVi('Con hoàn thành thêm tình huống cấp ' + (s.level - 1) + ' để mở khóa nhé!');
+      });
+      cards.appendChild(b);
+    });
+    box.appendChild(cards);
+  });
+  showScreen('scList');
+  Speech.speakVi(m.title);
+}
+
+/* =========================================================
+   AA3. CHẠY MỘT TÌNH HUỐNG
+   ========================================================= */
+function startScenario(def) {
+  if (isTimeUp()) { showLock(); return; }
+  sc.sid++;
+  Object.assign(sc, { def, mode: def.mode, flags: {}, attempted: {}, scored: 0, greatFirst: 0, order: {}, basket: {},
+    wallet: (def.wallet || []).slice().sort((a, b) => b - a), given: [], paid: 0, total: 0, hintOn: false, rerender: null });
+  const loc = TT.locations[def.location] || {};
+  $('#scTitle').textContent = (def.emoji || '') + ' ' + def.title;
+  $('#scScene').style.background = `linear-gradient(${(loc.bg || ['#e0f2fe', '#bae6fd']).join(',')})`;
+  $('#scDecor').textContent = loc.decor || '';
+  $('#scChat').innerHTML = '';
+  $('#scActions').innerHTML = '';
+  showScreen('sc');
+  renderInfo();
+  go(def.start || 'start');
+}
+
+// Sang nút tiếp theo (không có / không tìm thấy → hoàn thành tình huống)
+function go(id) {
+  const node = id && sc.def.nodes[id];
+  if (!node) { finishScenario(); return; }
+  sc.nodeId = id; sc.node = node;
+  sc.tried = new Set(); sc.hintOn = false; sc.rerender = null;
+  $('#btnHint').classList.remove('blink');
+  $('#scActions').innerHTML = '';
+  ({ talk: renderTalk, feeling: renderFeeling, shop: renderShop, pay: renderPay, change: renderChange, end: renderEnd }[node.type || 'talk'] || renderTalk)(node);
+}
+
+/* --- Nhân vật, lời thoại, bong bóng chat --- */
+function npcOf(key) { return (sc.def.npcs || {})[key] || { name: '', look: 'woman' }; }
+function showNpc(key, mood, hideMood) {
+  const n = npcOf(key || Object.keys(sc.def.npcs || {})[0]);
+  $('#scFace').innerHTML = faceSVG(n.look, mood || 'neutral');
+  $('#scNpcName').textContent = n.name;
+  const e = TT.emotions[mood];
+  $('#scMood').classList.toggle('hidden', !!hideMood || !e);
+  if (e) $('#scMood').textContent = e.emoji + ' ' + e.label;   // nhãn cảm xúc giúp trẻ nhận biết
+}
+function addMsg(kind, who, text, extraCls) {
+  const m = elt('div', 'msg ' + kind + (extraCls ? ' ' + extraCls : ''), (who ? `<b>${esc(who)}</b>` : '') + esc(text));
+  const chat = $('#scChat');
+  chat.appendChild(m);
+  while (chat.children.length > 14) chat.removeChild(chat.firstChild);   // giữ khung chat gọn
+  chat.scrollTop = chat.scrollHeight;
+}
+function npcSays(key, text, mood, hideMood) {
+  const k = key || Object.keys(sc.def.npcs || {})[0];
+  showNpc(k, mood, hideMood);
+  addMsg('npc', npcOf(k).name, fillSc(text));
+  return speakAuto(fillSc(text));
+}
+// Rồng 🐉 – người hướng dẫn: khen cụ thể hoặc gợi ý nhẹ nhàng (không bao giờ nói "sai")
+function coach(text, quality) {
+  addMsg('coach', '🐉 Rồng con', fillSc(text), quality || '');
+  return speakAuto(fillSc(text));
+}
+function actionButtons(btns) {
+  const row = elt('div', 'act-row');
+  btns.forEach(b => {
+    const x = elt('button', 'act-btn' + (b.retry ? ' retry' : ''), esc(b.label));
+    x.type = 'button';
+    x.addEventListener('click', b.onClick);
+    row.appendChild(x);
+  });
+  $('#scActions').appendChild(row);
+  return row;
+}
+// Tính sao theo LẦN CHỌN ĐẦU TIÊN ở mỗi nút. Dùng gợi ý trước khi chọn → không tính là "great".
+function scoreFirst(key, q) {
+  if (sc.attempted[key]) return;
+  sc.attempted[key] = true;
+  sc.scored++;
+  if (q === 'great' && !sc.hintOn) sc.greatFirst++;
+}
+const moodFor = q => (q === 'great' ? 'happy' : q === 'ok' ? 'neutral' : 'confused');
+function afterTryAgain(retryFn) {
+  $('#btnHint').classList.add('blink');                 // gợi ý nhấp nháy khi bé cần
+  actionButtons([{ label: '🔄 Thử lại nhé', retry: true, onClick: retryFn }]);
+}
+
+/* --- Nút "talk": nhân vật nói, bé chọn câu trả lời --- */
+function renderTalk(node) {
+  npcSays(node.npc, node.text, node.mood || 'neutral');
+  showChoices(node);
+}
+function showChoices(node) {
+  const box = $('#scActions');
+  box.innerHTML = '';
+  const key = sc.nodeId;
+  if (!sc.order[key]) sc.order[key] = shuffle(node.choices.map((_, i) => i));   // trộn để đáp án tốt không luôn ở đầu
+  sc.order[key].forEach(i => {
+    const c = node.choices[i];
+    const row = elt('div', 'choice-row');
+    const sayBtn = elt('button', 'icon-btn say-btn vi-only', '🔊');
+    sayBtn.type = 'button';
+    sayBtn.setAttribute('aria-label', 'Nghe câu này');
+    sayBtn.addEventListener('click', () => Speech.speakVi(c.text));
+    const b = elt('button', 'choice', `<span class="ce">${c.emoji || '💬'}</span><span>${esc(c.text)}</span>`);
+    b.type = 'button';
+    if (sc.tried.has(i)) { b.classList.add('tried'); b.disabled = true; }
+    if (sc.hintOn && c.quality === 'great') b.classList.add('hint-glow');
+    b.addEventListener('click', () => pickChoice(node, i));
+    row.appendChild(sayBtn); row.appendChild(b);
+    box.appendChild(row);
+  });
+  sc.rerender = () => showChoices(node);
+}
+async function pickChoice(node, i) {
+  const c = node.choices[i];
+  const q = c.quality || 'ok';
+  const sid = sc.sid;
+  scoreFirst(sc.nodeId, q);
+  sc.rerender = null;
+  $('#scActions').innerHTML = '';
+  addMsg('kid', 'Con', c.text);
+  if (c.flag) { sc.flags[c.flag] = true; renderInfo(); }   // vd. đồng ý lấy món thay thế khi hết hàng
+  const r = c.npcReaction || {};
+  showNpc(node.npc, r.mood || moodFor(q));
+  if (q === 'great') restartAnim($('#scFace').firstChild, 'jump');
+  if (r.text) { addMsg('npc', npcOf(node.npc || Object.keys(sc.def.npcs)[0]).name, fillSc(r.text)); await speakAuto(fillSc(r.text)); }
+  if (sid !== sc.sid) return;                         // bé đã rời màn
+  coach(c.feedback || TT.defaultFeedback[q], q);
+  if (q === 'try_again') {
+    sc.tried.add(i);
+    afterTryAgain(() => { $('#scActions').innerHTML = ''; showNpc(node.npc, node.mood || 'neutral'); showChoices(node); });
+  } else {
+    actionButtons([{ label: 'Tiếp tục ▶', onClick: () => go(c.next || node.next) }]);
+  }
+}
+
+/* --- Nút "feeling": Bạn ấy đang cảm thấy thế nào? --- */
+function renderFeeling(node) {
+  if (node.text) npcSays(node.npc, node.text, node.answer, true);   // ẩn nhãn cảm xúc để bé tự đoán
+  else showNpc(node.npc, node.answer, true);
+  coach(node.question || 'Bạn ấy đang cảm thấy thế nào? Nhìn mắt và miệng của bạn ấy nhé!', '');
+  const opts = node.options || [node.answer].concat(shuffle(Object.keys(TT.emotions).filter(k => k !== node.answer && k !== 'neutral')).slice(0, 3));
+  const order = sc.order[sc.nodeId] || (sc.order[sc.nodeId] = shuffle(opts));
+  const draw = () => {
+    const box = $('#scActions');
+    box.innerHTML = '';
+    const grid = elt('div', 'feel-grid');
+    order.forEach(k => {
+      const e = TT.emotions[k];
+      const b = elt('button', 'feel-btn', `<span class="fe">${e.emoji}</span>${esc(e.label)}`);
+      b.type = 'button';
+      if (sc.tried.has(k)) { b.classList.add('tried'); b.disabled = true; }
+      if (sc.hintOn && k === node.answer) b.classList.add('hint-glow');
+      b.addEventListener('click', async () => {
+        const ok = k === node.answer;
+        scoreFirst(sc.nodeId, ok ? 'great' : 'try_again');
+        box.innerHTML = '';
+        addMsg('kid', 'Con', 'Bạn ấy đang ' + e.label.toLowerCase() + '.');
+        if (ok) {
+          showNpc(node.npc, node.answer);                // hiện nhãn cảm xúc
+          coach(node.praise || ('Đúng rồi! Bạn ấy đang ' + e.label.toLowerCase() + '. Con quan sát giỏi lắm!'), 'great');
+          actionButtons([{ label: 'Tiếp tục ▶', onClick: () => go(node.next) }]);
+        } else {
+          sc.tried.add(k);
+          coach(node.hint || 'Hmm, mình nhìn lại nhé: đôi mắt, lông mày và miệng của bạn ấy trông thế nào?', 'try_again');
+          afterTryAgain(draw);
+        }
+      });
+      grid.appendChild(b);
+    });
+    box.appendChild(grid);
+    sc.rerender = draw;
+  };
+  draw();
+}
+
+/* --- Thông tin mua sắm: danh sách cần mua + ví tiền --- */
+// Món cần mua thực tế (nếu hết hàng thì là món thay thế)
+function needId(entry) { const so = sc.flags.sub && (sc.def.soldOut || {})[entry.item]; return so || entry.item; }
+function renderInfo() {
+  const box = $('#scInfo');
+  box.innerHTML = '';
+  if (sc.def.mode !== 'shopping' || !sc.def.list) return;
+  box.appendChild(elt('span', '', '🧾'));
+  sc.def.list.forEach(en => {
+    const it = itemOf(needId(en));
+    const have = sc.basket[needId(en)] || 0;
+    box.appendChild(elt('span', 'chip' + (have >= en.qty ? ' ok' : ''), `${it.emoji} ${esc(it.name)} ×${en.qty}${have >= en.qty ? ' ✓' : ''}`));
+  });
+  box.appendChild(elt('span', 'chip wallet', '👛 ' + fmtMoney(sc.wallet.reduce((a, b) => a + b, 0))));
+}
+
+/* --- Nút "shop": tìm đồ trên kệ, cho vào giỏ --- */
+function renderShop(node) {
+  if (node.npc && node.say) npcSays(node.npc, node.say, 'happy');
+  coach(node.text || 'Con tìm đồ trong danh sách 🧾 trên kệ và cho vào giỏ nhé!', '');
+  const listIds = sc.def.list.map(e => e.item);
+  const shelf = [...new Set(listIds.concat(Object.values(sc.def.soldOut || {}), node.decoys || []))];
+  const draw = () => {
+    const box = $('#scActions');
+    box.innerHTML = '';
+    // Giỏ hàng: chạm để bỏ ra
+    const bk = elt('div', 'basket', '<span style="font-size:28px">🧺</span>');
+    const ids = Object.keys(sc.basket).filter(k => sc.basket[k] > 0);
+    if (!ids.length) bk.appendChild(elt('span', '', 'Giỏ đang trống'));
+    ids.forEach(k => {
+      const it = itemOf(k);
+      const chip = elt('button', 'basket-chip', `${it.emoji} ${esc(it.name)} ×${sc.basket[k]}`);
+      chip.type = 'button';
+      chip.setAttribute('aria-label', 'Bỏ ' + it.name + ' ra khỏi giỏ');
+      chip.addEventListener('click', () => { sc.basket[k]--; renderInfo(); draw(); });
+      bk.appendChild(chip);
+    });
+    box.appendChild(bk);
+    // Kệ hàng theo khu
+    Object.keys(TT.zones).forEach(z => {
+      const items = shelf.filter(id => itemOf(id).zone === z);
+      if (!items.length) return;
+      const zone = elt('div', 'zone', `<div class="zone-name">${TT.zones[z].emoji} ${esc(TT.zones[z].name)}</div>`);
+      const row = elt('div', 'shelf');
+      items.forEach(id => {
+        const it = itemOf(id);
+        const sold = (sc.def.soldOut || {})[id];
+        const t = elt('button', 'item' + (sold ? ' soldout' : ''),
+          `<span class="ie">${it.emoji}</span><span class="in">${esc(it.name)}</span><span class="ip">${sold ? 'Hết hàng' : fmtMoney(it.price)}</span>`);
+        t.type = 'button';
+        // Cấp 1 hoặc khi bấm 💡: làm sáng các món cần mua
+        const needed = sc.def.list.some(e => needId(e) === id);
+        if (needed && (sc.def.level === 1 || sc.hintOn)) t.classList.add('hint-glow');
+        t.addEventListener('click', () => {
+          if (sold) { Speech.speakVi(it.name + ' hết hàng rồi'); restartAnim(t, 'wiggle'); return; }
+          sc.basket[id] = Math.min(9, (sc.basket[id] || 0) + 1);
+          Speech.speakVi(it.name);
+          renderInfo(); draw();
+        });
+        row.appendChild(t);
+      });
+      zone.appendChild(row);
+      box.appendChild(zone);
+    });
+    actionButtons([{ label: '✅ Xong, đi tính tiền', onClick: () => checkBasket(node) }]);
+    sc.rerender = draw;
+  };
+  draw();
+}
+function checkBasket(node) {
+  const missing = [], extra = [];
+  const need = {};
+  sc.def.list.forEach(e => { need[needId(e)] = (need[needId(e)] || 0) + e.qty; });
+  Object.keys(need).forEach(id => { if ((sc.basket[id] || 0) < need[id]) missing.push(id); });
+  Object.keys(sc.basket).forEach(id => { if (sc.basket[id] > (need[id] || 0)) extra.push(id); });
+  const names = ids => ids.map(id => itemOf(id).emoji + ' ' + itemOf(id).name).join(', ');
+  if (missing.length) { scoreFirst(sc.nodeId, 'try_again'); coach('Mình còn thiếu: ' + names(missing) + '. Con nhìn lại danh sách 🧾 nhé!', 'try_again'); $('#btnHint').classList.add('blink'); return; }
+  if (extra.length) { scoreFirst(sc.nodeId, 'try_again'); coach('Trong giỏ có món không có trong danh sách (hoặc lấy nhiều quá): ' + names(extra) + '. Con chạm vào món trong giỏ để đặt lại kệ nhé!', 'try_again'); $('#btnHint').classList.add('blink'); return; }
+  scoreFirst(sc.nodeId, 'great');
+  sc.rerender = null;
+  $('#scActions').innerHTML = '';
+  coach(node.praise || 'Con đã lấy đúng và đủ đồ trong danh sách. Giỏi quá!', 'great');
+  actionButtons([{ label: 'Tiếp tục ▶', onClick: () => go(node.next) }]);
+}
+
+/* --- Tiền: vẽ tờ tiền, gợi ý tờ cần đưa --- */
+function noteEl(v, cls) {
+  const b = elt('button', 'note n' + v + (cls ? ' ' + cls : ''), String(v / 1000) + '.000<small>đ</small>');
+  b.type = 'button';
+  b.setAttribute('aria-label', fmtMoney(v));
+  return b;
+}
+// Tìm cách đưa ít tiền nhất mà vẫn đủ (thử mọi tổ hợp – ví nhỏ nên rất nhanh)
+function suggestNotes(wallet, total) {
+  let best = null;
+  const n = Math.min(wallet.length, 12);
+  for (let mask = 1; mask < (1 << n); mask++) {
+    let sum = 0, cnt = 0;
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) { sum += wallet[i]; cnt++; }
+    if (sum >= total && (!best || sum < best.sum || (sum === best.sum && cnt < best.cnt))) best = { sum, cnt, mask };
+  }
+  return best ? wallet.map((_, i) => !!(best.mask & (1 << i))) : wallet.map(() => false);
+}
+// Chia một số tiền thành các tờ (dùng khi vẽ tiền thối)
+function breakMoney(v) { const out = []; TT.money.slice().reverse().forEach(d => { while (v >= d) { out.push(d); v -= d; } }); return out; }
+
+/* --- Nút "pay": trả tiền (có thể phải bỏ bớt món nếu không đủ tiền) --- */
+function basketTotal() { return Object.keys(sc.basket).reduce((s, id) => s + itemOf(id).price * sc.basket[id], 0); }
+function renderPay(node) {
+  sc.total = node.total || basketTotal();
+  const walletSum = sc.wallet.reduce((a, b) => a + b, 0);
+  if (walletSum < sc.total && node.allowRemove) { renderRemove(node); return; }
+  npcSays(node.npc, node.text || 'Tất cả là {total} nhé con.', 'happy');
+  sc.given = [];
+  const draw = () => {
+    const box = $('#scActions');
+    box.innerHTML = '';
+    box.appendChild(elt('div', 'pay-sum', '🧾 Tiền hàng: ' + fmtMoney(sc.total)));
+    box.appendChild(elt('div', 'panel-label', '👛 Ví của con (chạm tờ tiền để đưa):'));
+    const w = elt('div', 'money-row');
+    const glow = (sc.def.level === 1 || sc.hintOn) ? suggestNotes(sc.wallet, sc.total) : [];
+    sc.wallet.forEach((v, i) => {
+      if (sc.given.includes(i)) return;
+      const b = noteEl(v, glow[i] ? 'hint-glow' : '');
+      b.addEventListener('click', () => { sc.given.push(i); draw(); });
+      w.appendChild(b);
+    });
+    box.appendChild(w);
+    box.appendChild(elt('div', 'panel-label', '🤲 Tiền con đưa cho cô (chạm để lấy lại):'));
+    const g = elt('div', 'money-row');
+    sc.given.forEach((i, k) => {
+      const b = noteEl(sc.wallet[i]);
+      b.addEventListener('click', () => { sc.given.splice(k, 1); draw(); });
+      g.appendChild(b);
+    });
+    box.appendChild(g);
+    const sum = sc.given.reduce((s, i) => s + sc.wallet[i], 0);
+    // Cấp 1–2: hiện tổng phụ trợ. Cấp 3: bé tự cộng (bấm 💡 để xem).
+    if (sc.def.level <= 2 || sc.hintOn) box.appendChild(elt('div', 'pay-sum', 'Con đang đưa: ' + fmtMoney(sum)));
+    actionButtons([{ label: '💵 Trả tiền', onClick: () => submitPay(node, sum) }]);
+    sc.rerender = draw;
+  };
+  draw();
+}
+function submitPay(node, sum) {
+  const key = sc.nodeId + ':pay';
+  if (sum < sc.total) {
+    scoreFirst(key, 'try_again');
+    coach(sum === 0 ? 'Con chạm vào tờ tiền trong ví để đưa cho cô nhé!' : 'Chưa đủ tiền rồi. Còn thiếu ' + fmtMoney(sc.total - sum) + '. Con đưa thêm nhé!', 'try_again');
+    $('#btnHint').classList.add('blink');
+    return;
+  }
+  const values = sc.given.map(i => sc.wallet[i]);
+  const tooMany = values.some(v => sum - v >= sc.total);     // có tờ không cần đưa
+  scoreFirst(key, tooMany ? 'ok' : 'great');
+  sc.paid = sum;
+  sc.wallet = sc.wallet.filter((_, i) => !sc.given.includes(i));
+  sc.given = [];
+  sc.rerender = null;
+  $('#scActions').innerHTML = '';
+  renderInfo();
+  addMsg('kid', 'Con', 'Dạ con gửi cô ' + fmtMoney(sum) + ' ạ.');
+  coach(tooMany ? 'Con đã trả đủ tiền. Lần sau con chỉ cần đưa vừa đủ, không cần đưa thêm tờ thừa nhé.'
+                : 'Con đã chọn tiền rất chính xác!', tooMany ? 'ok' : 'great');
+  actionButtons([{ label: 'Tiếp tục ▶', onClick: () => go(node.next) }]);
+}
+// Không đủ tiền → bỏ bớt món ít cần thiết (món có need:'low' trong danh sách)
+function renderRemove(node) {
+  npcSays(node.npc, node.text || 'Tất cả là {total} nhé con.', 'neutral');
+  const walletSum = sc.wallet.reduce((a, b) => a + b, 0);
+  coach(node.removeText || ('Ôi! Ví của con chỉ có ' + fmtMoney(walletSum) + ', không đủ trả ' + fmtMoney(sc.total) + '. Con bỏ bớt món nào ít cần thiết nhất nhé?'), 'try_again');
+  const key = sc.nodeId + ':remove';
+  const draw = () => {
+    const box = $('#scActions');
+    box.innerHTML = '';
+    box.appendChild(elt('div', 'panel-label', '🧺 Chạm vào món muốn bỏ lại:'));
+    const bk = elt('div', 'basket');
+    Object.keys(sc.basket).filter(k => sc.basket[k] > 0).forEach(k => {
+      const it = itemOf(k);
+      const entry = sc.def.list.find(e => needId(e) === k);
+      const low = !entry || entry.need === 'low';
+      const chip = elt('button', 'basket-chip' + (sc.hintOn && low ? ' hint-glow' : ''), `${it.emoji} ${esc(it.name)} ×${sc.basket[k]} · ${fmtMoney(it.price)}`);
+      chip.type = 'button';
+      chip.addEventListener('click', () => {
+        if (!low) {
+          scoreFirst(key, 'try_again');
+          coach(it.name + ' là món mẹ dặn rất cần. Mình bỏ món khác ít cần thiết hơn nhé!', 'try_again');
+          $('#btnHint').classList.add('blink');
+          return;
+        }
+        sc.basket[k]--;
+        sc.total = basketTotal();
+        renderInfo();
+        if (sc.total <= walletSum) {
+          scoreFirst(key, 'great');
+          sc.rerender = null;
+          box.innerHTML = '';
+          addMsg('kid', 'Con', 'Dạ con xin để lại ' + it.name + ' ạ.');
+          coach(node.removePraise || 'Con đã bỏ bớt món ít cần thiết để đủ tiền. Rất khéo!', 'great');
+          actionButtons([{ label: 'Tiếp tục ▶', onClick: () => { $('#scActions').innerHTML = ''; renderPay(node); } }]);
+        } else draw();
+      });
+      bk.appendChild(chip);
+    });
+    box.appendChild(bk);
+    box.appendChild(elt('div', 'pay-sum', '🧾 Tiền hàng: ' + fmtMoney(sc.total) + ' · 👛 Ví: ' + fmtMoney(walletSum)));
+    sc.rerender = draw;
+  };
+  draw();
+}
+
+/* --- Nút "change": kiểm tra tiền thối --- */
+function renderChange(node) {
+  const expected = sc.paid - sc.total;
+  if (expected <= 0) {   // trả vừa đủ: không có tiền thối
+    npcSays(node.npc, 'Con trả vừa đủ, không có tiền thối nhé.', 'happy');
+    actionButtons([{ label: 'Tiếp tục ▶', onClick: () => go(node.next) }]);
+    return;
+  }
+  const short = Math.min(node.shortBy || 0, expected);
+  const given = expected - short;
+  npcSays(node.npc, node.text || ('Cô thối con ' + fmtMoney(given) + ' nhé.'), 'happy');
+  const box = $('#scActions');
+  const show = () => {
+    const info = elt('div', '');
+    info.appendChild(elt('div', 'pay-sum', `🤲 Con đã đưa: ${fmtMoney(sc.paid)} · 🧾 Tiền hàng: ${fmtMoney(sc.total)}`));
+    if (sc.def.level <= 2 || sc.hintOn) info.appendChild(elt('div', 'panel-label', `💡 Tiền thối đúng = ${fmtMoney(sc.paid)} − ${fmtMoney(sc.total)} = ${fmtMoney(expected)}`));
+    info.appendChild(elt('div', 'panel-label', '💰 Cô đưa con:'));
+    const row = elt('div', 'money-row');
+    breakMoney(given).forEach(v => { const n = noteEl(v, 'static'); n.disabled = true; row.appendChild(n); });
+    info.appendChild(row);
+    return info;
+  };
+  // Lựa chọn lấy từ dữ liệu (node.choices) hoặc mẫu chung trong scenarios.js
+  const choices = node.choices || TT.changeChoices[short ? 'short' : 'correct'];
+  const virtual = { npc: node.npc, mood: 'happy', choices, next: node.next };
+  const draw = () => { showChoices(virtual); box.insertBefore(show(), box.firstChild); sc.rerender = draw; };
+  draw();
+}
+
+/* --- Nút "end": câu kết --- */
+function renderEnd(node) {
+  npcSays(node.npc, node.text, node.mood || 'happy');
+  restartAnim($('#scFace').firstChild, 'jump');
+  actionButtons([{ label: 'Hoàn thành 🎉', onClick: finishScenario }]);
+}
+
+/* =========================================================
+   AA4. HOÀN THÀNH: sao, sticker, Sổ tiến bộ
+   1–3 sao theo tỉ lệ lựa chọn "great" ở LẦN ĐẦU: ≥ 85% → 3 sao, ≥ 50% → 2 sao, còn lại 1 sao.
+   ========================================================= */
+function finishScenario() {
+  const d = sc.def;
+  sc.sid++;
+  const ratio = sc.scored ? sc.greatFirst / sc.scored : 1;
+  const stars = ratio >= 0.85 ? 3 : ratio >= 0.5 ? 2 : 1;
+  const rec = progress.sc[d.id] || { stars: 0, plays: 0 };
+  rec.plays++;
+  rec.stars = Math.max(rec.stars, stars);
+  progress.sc[d.id] = rec;
+  (d.skills || []).forEach(k => {
+    const s = progress.skills[k] || { plays: 0, stars: 0 };
+    s.plays++; s.stars += stars;
+    progress.skills[k] = s;
+  });
+  const fed = feedDragonAfterSession();   // xong 1 tình huống cũng tính là 1 ca cho rồng con
+  saveProgress();
+  $('#doneSticker').textContent = d.sticker || d.emoji || '🏅';
+  $('#doneTitle').textContent = 'Hoàn thành: ' + d.title;
+  $('#doneStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  // Mua sắm: về nhà đối chiếu giỏ hàng với danh sách
+  const chk = $('#doneCheck');
+  chk.innerHTML = '';
+  if (d.mode === 'shopping' && d.list) {
+    const ul = elt('ul', '');
+    d.list.forEach(e => {
+      const id = needId(e), it = itemOf(id), have = sc.basket[id] || 0;
+      const sub = id !== e.item ? ` (thay cho ${itemOf(e.item).name})` : '';
+      ul.appendChild(elt('li', '', `${have >= e.qty ? '✅' : (e.need === 'low' ? '➖' : '⬜')} ${it.emoji} ${esc(it.name)} ×${e.qty}${esc(sub)}`));
+    });
+    chk.appendChild(elt('div', 'home-check', '<b>🏠 Về nhà kiểm tra với mẹ:</b>'));
+    chk.firstChild.appendChild(ul);
+  }
+  $('#doneDragon').innerHTML = fed ? '<span class="dragon-wrap fed"><span class="dragon">🐉</span></span><span class="sun-fly">☀️</span>' : '';
+  showScreen('scDone');
+  Speech.speakVi('Hoàn thành! Con được ' + stars + ' sao.');
+}
+function nextScenario() {
+  const list = scenariosOf(sc.def.mode).filter(isUnlocked);
+  const i = list.findIndex(s => s.id === sc.def.id);
+  const rest = list.slice(i + 1).concat(list.slice(0, i + 1));
+  return rest.find(s => !progress.sc[s.id]) || rest[0];
+}
+
+/* --- Gợi ý 💡: làm sáng lựa chọn phù hợp ở màn hiện tại --- */
+$('#btnHint').addEventListener('click', () => {
+  if (state.screen !== 'sc') return;
+  sc.hintOn = true;
+  $('#btnHint').classList.remove('blink');
+  if (sc.rerender) sc.rerender();
+  else Speech.speakVi('Con bấm nút Tiếp tục nhé!');
+});
+
+/* --- Nút điều hướng --- */
+function leaveScenario() { sc.sid++; Speech.stop(); }
+$('#btnModeShop').addEventListener('click', () => openModeList('shopping'));
+$('#btnModeTalk').addEventListener('click', () => openModeList('talk'));
+$('#btnListBack').addEventListener('click', () => { leaveScenario(); goHome(); });
+$('#btnScBack').addEventListener('click', () => { leaveScenario(); openModeList(sc.mode); });
+$('#btnDoneList').addEventListener('click', () => openModeList(sc.mode));
+$('#btnDoneAgain').addEventListener('click', () => startScenario(sc.def));
+$('#btnDoneNext').addEventListener('click', () => startScenario(nextScenario()));
+
+/* =========================================================
+   AA5. KHU PHỤ HUYNH: cài đặt đọc to, giáo viên, Sổ tiến bộ
+   ========================================================= */
+// Mức kỹ năng: dựa vào số lần luyện VÀ số sao trung bình (thành thạo = luyện ≥ 6 lần, trung bình ≥ 2,5 sao)
+function skillLevel(p) {
+  if (!p.plays) return 'Chưa luyện';
+  if (p.plays < 3) return 'Mới bắt đầu';
+  return p.plays >= 6 && p.stars / p.plays >= 2.5 ? 'Thành thạo' : 'Đang tiến bộ';
+}
+function renderParentExtras() {
+  $('#readAloudToggle').checked = !!progress.readAloud;
+  $('#teacherToggle').checked = !!progress.teacher;
+  document.querySelectorAll('#rateSeg .seg-btn').forEach(b => b.classList.toggle('on', +b.dataset.rate === +progress.viRate));
+  $('#viVoiceWarn').classList.toggle('hidden', Speech.hasVi);
+  const book = $('#skillBook');
+  book.innerHTML = '';
+  if (!TT) { book.textContent = 'Thiếu file scenarios.js nên chế độ Mua sắm & Trò chuyện đang tắt.'; return; }
+  Object.keys(TT.skills).forEach(k => {
+    const s = TT.skills[k], p = progress.skills[k] || { plays: 0, stars: 0 };
+    // Thanh tiến bộ: 60% từ số lần luyện (tối đa 6 lần) + 40% từ sao trung bình
+    const pct = p.plays ? Math.min(100, Math.round(Math.min(p.plays, 6) / 6 * 60 + (p.stars / p.plays) / 3 * 40)) : 0;
+    const row = elt('div', 'skill-row', `<span>${s.emoji} ${esc(s.name)}</span><span class="skill-bar"><span style="width:${pct}%"></span></span>` +
+      `<span class="skill-lv">${skillLevel(p)} · đã luyện ${p.plays} lần${p.plays ? ' · trung bình ' + (p.stars / p.plays).toFixed(1) + ' ⭐' : ''}</span>`);
+    book.appendChild(row);
+  });
+  const done = TT.scenarios.filter(s => progress.sc[s.id]);
+  $('#scDoneList').innerHTML = done.length
+    ? done.map(s => `${s.mode === 'shopping' ? '🛒' : '💬'} ${esc(s.title)} – ${'⭐'.repeat(progress.sc[s.id].stars)} (${progress.sc[s.id].plays} lần)`).join('<br>')
+    : 'Chưa có.';
+}
+$('#readAloudToggle').addEventListener('change', e => { progress.readAloud = e.target.checked; saveProgress(); });
+$('#teacherToggle').addEventListener('change', e => { progress.teacher = e.target.checked; saveProgress(); });
+document.querySelectorAll('#rateSeg .seg-btn').forEach(b => b.addEventListener('click', () => {
+  progress.viRate = +b.dataset.rate; saveProgress(); renderParentExtras();
+  Speech.speakVi('Xin chào! Đây là tốc độ đọc mới.');
+}));
+// Thiếu file dữ liệu → ẩn 2 chế độ mới
+if (!TT) { $('#btnModeShop').classList.add('hidden'); $('#btnModeTalk').classList.add('hidden'); }
 
 /* =========================================================
    Z. KHỞI ĐỘNG
