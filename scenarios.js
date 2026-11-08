@@ -390,6 +390,334 @@
         bye: end('mom', 'Con ơi, mẹ đây rồi! Con giỏi lắm: đứng yên, nói Không với người lạ và tìm cô nhân viên.'),
       } },
 
+    /* ================= TRÒ CHUYỆN 💬 ================= */
+
+    // ----- Gia đình & hàng xóm -----
+    { id: 'talk-chaoba', mode: 'talk', group: 'family', level: 1, emoji: '👵', sticker: '🙇',
+      title: 'Chào ông bà hàng xóm', location: 'street', skills: ['greet'],
+      npcs: { ba: { name: 'Bà Tư', look: 'grandma' }, ong: { name: 'Ông Tư', look: 'grandpa' } },
+      nodes: {
+        start: talk('ba', 'Ồ, cháu đi học về đấy à?', 'happy', [
+          G('🙇', 'Dạ cháu chào bà Tư ạ!', 'Ừ, ngoan quá!', 'Con khoanh tay chào bà thật lễ phép!', 'school'),
+          O('👋', 'Chào bà.', 'Ừ, chào cháu.', 'Thêm “Dạ… ạ” sẽ lễ phép hơn nhé: “Dạ cháu chào bà ạ”.', 'school'),
+          T('🚶', '(Đi thẳng vào nhà)', 'Ơ, cháu không thấy bà à?', 'Gặp người lớn, mình chào nhé: “Dạ cháu chào bà ạ”.', 'sad'),
+        ]),
+        school: talk('ba', 'Hôm nay đi học có vui không cháu?', 'happy', [
+          G('🎨', 'Dạ vui lắm ạ! Hôm nay cháu được vẽ tranh.', 'Ôi, giỏi quá! Hôm nào cho bà xem nhé.', 'Con trả lời và kể thêm một chuyện vui. Tuyệt!', 'ong'),
+          O('🙂', 'Dạ vui.', 'Ừ, thế là tốt rồi.', 'Con có thể kể thêm một chuyện vui cho bà nghe đó.', 'ong'),
+          T('😒', 'Bà hỏi làm gì ạ!', 'Ơ… bà chỉ hỏi thăm thôi mà.', 'Bà hỏi thăm vì bà quý con. Mình trả lời nhẹ nhàng nhé.', 'sad'),
+        ]),
+        ong: talk('ong', 'Ông cũng ở đây nè cháu!', 'happy', [
+          G('🙇', 'Dạ cháu chào ông ạ!', 'Cháu ngoan lắm!', 'Con chào cả ông nữa. Rất chu đáo!', 'bye'),
+          T('🏃', '(Vẫy tay rồi chạy đi)', 'Ơ kìa…', 'Mình dừng lại, khoanh tay chào ông nhé.', 'confused'),
+        ]),
+        bye: end('ba', 'Cháu lễ phép quá! Bà cho cháu quả ổi nè.'),
+      } },
+
+    { id: 'talk-donban', mode: 'talk', group: 'family', level: 1, emoji: '🍽️', sticker: '🧽',
+      title: 'Giúp mẹ dọn bàn', location: 'home', skills: ['kind', 'thanks'],
+      npcs: { mom: { name: 'Mẹ', look: 'mom' } },
+      nodes: {
+        start: talk('mom', 'Cả nhà ăn xong rồi. Ai giúp mẹ dọn bàn nào?', 'happy', [
+          G('🙋', 'Dạ để con giúp mẹ ạ!', 'Ôi, con ngoan quá!', 'Con xung phong giúp mẹ. Thật đáng yêu!', 'carry'),
+          O('⏰', 'Lát nữa con làm ạ.', 'Ừ, nhưng đừng quên nhé.', 'Giúp mẹ ngay sẽ làm mẹ vui hơn đó.', 'carry'),
+          T('🙅', 'Con không thích!', 'Mẹ hơi buồn đó…', 'Mẹ làm việc nhà cả ngày rồi. Mình giúp mẹ một chút nhé.', 'sad'),
+        ]),
+        carry: talk('mom', 'Con mang bát đũa xuống bếp giúp mẹ nhé. Cẩn thận kẻo rơi.', 'neutral', [
+          G('🥣', 'Dạ con bê từng ít một cho khỏi rơi ạ.', 'Đúng rồi, cẩn thận như vậy là giỏi!', 'Con làm cẩn thận, từng ít một. Rất khéo!', 'thanks'),
+          T('🏃', 'Con chồng hết lên rồi chạy thật nhanh!', 'Ối, cẩn thận con!', 'Bê nhiều quá và chạy dễ làm rơi vỡ. Mình mang từng ít một nhé.', 'scared'),
+        ]),
+        thanks: talk('mom', 'Bàn sạch bong rồi! Cảm ơn con nhé.', 'happy', [
+          G('💗', 'Dạ không có gì ạ! Lần sau con lại giúp mẹ.', 'Mẹ yêu con!', 'Con nói lời đáp thật dễ thương!', 'bye'),
+          O('🙂', 'Dạ.', 'Ừ.', 'Khi được cảm ơn, mình có thể nói “Dạ không có gì ạ”.', 'bye'),
+        ]),
+        bye: end('mom', 'Hôm nay con là người giúp việc nhà giỏi nhất!'),
+      } },
+
+    { id: 'talk-goidienba', mode: 'talk', group: 'family', level: 2, emoji: '☎️', sticker: '💌',
+      title: 'Gọi điện hỏi thăm bà', location: 'phone', skills: ['greet', 'kind', 'feelings'],
+      npcs: { ba: { name: 'Bà ngoại', look: 'grandma' } },
+      nodes: {
+        start: talk('ba', 'A lô, bà nghe đây!', 'neutral', [
+          G('📞', 'A lô, con chào bà ạ! Con là cháu của bà đây ạ.', 'Ôi, cháu yêu của bà!', 'Con chào và nói mình là ai. Rất hay!', 'health'),
+          O('🙂', 'A lô.', 'A lô? Ai đấy?', 'Con nói thêm “Con chào bà ạ, con là cháu của bà” nhé.', 'health', 'confused'),
+          T('🤐', '(Im lặng, không nói)', 'A lô? A lô? Ai đấy?', 'Gọi điện thì mình chào và nói tên mình trước nhé.'),
+        ]),
+        health: talk('ba', 'Cháu bà có khỏe không?', 'happy', [
+          G('💗', 'Dạ cháu khỏe ạ. Bà có khỏe không ạ?', 'Bà cũng khỏe, chỉ hơi đau chân thôi cháu ạ.', 'Con hỏi thăm lại bà. Thật chu đáo!', 'feel', 'sad'),
+          O('👍', 'Dạ khỏe.', 'Ừ. Bà thì hơi đau chân…', 'Hỏi lại “Bà có khỏe không ạ?” để bà vui hơn nhé.', 'feel', 'sad'),
+          T('📺', 'Con đang xem ti vi, con cúp máy đây.', 'Ơ… bà còn muốn nói chuyện với cháu…', 'Bà mong nói chuyện với con lắm. Mình hỏi thăm bà nhé.', 'sad'),
+        ]),
+        feel: feel('ba', 'Dạo này bà đau chân, đi lại chậm lắm…', 'sad', ['sad', 'happy', 'angry', 'surprised'], 'care'),
+        care: talk('ba', 'Bà đau chân nên không sang chơi với cháu được.', 'sad', [
+          G('🤗', 'Bà nhớ giữ gìn sức khỏe nhé. Cuối tuần con sang thăm bà ạ!', 'Ôi, bà vui quá! Bà chờ cháu nhé.', 'Con quan tâm và hứa sang thăm. Bà vui lắm đó!', 'bye'),
+          O('🙂', 'Dạ.', 'Ừ…', 'Con có thể nói một câu hỏi thăm để bà vui hơn.', 'bye'),
+          T('🐢', 'Hihi, bà đi chậm như rùa!', 'Ơ… bà hơi buồn đó cháu.', 'Trêu khi bà đau sẽ làm bà buồn. Mình nói lời hỏi thăm nhé.', 'sad'),
+        ]),
+        bye: talk('ba', 'Bà vui lắm vì cháu gọi. Thôi cháu đi chơi nhé!', 'happy', [
+          G('👋', 'Dạ con chào bà ạ! Con yêu bà!', 'Bà cũng yêu cháu!', 'Con chào tạm biệt thật ấm áp!', 'fin'),
+          T('📴', '(Cúp máy luôn)', 'A lô? … Ơ, mất rồi.', 'Trước khi cúp máy, mình chào tạm biệt nhé.'),
+        ]),
+        fin: end('ba', 'Cuộc gọi của cháu làm bà vui cả ngày!'),
+      } },
+
+    // ----- Trường học & bạn bè -----
+    { id: 'talk-banmoi', mode: 'talk', group: 'school', level: 1, emoji: '👋', sticker: '🤝',
+      title: 'Làm quen bạn mới', location: 'school', skills: ['greet', 'feelings', 'kind'],
+      npcs: { mai: { name: 'Bạn Mai', look: 'girl' } },
+      nodes: {
+        start: feel('mai', '(Bạn mới đứng một mình ở góc lớp)', 'worried', ['worried', 'happy', 'angry', 'surprised'], 'hello',
+          'Đúng rồi! Bạn mới đang lo lắng vì chưa quen ai.'),
+        hello: talk('mai', 'Chào… bạn.', 'worried', [
+          G('👋', 'Chào bạn! Mình học lớp này. Bạn tên là gì?', 'Mình tên là Mai. Mình mới chuyển đến.', 'Con chào và hỏi tên bạn. Bạn mới vui hơn rồi!', 'alone'),
+          O('😃', 'Ê, bạn mới hả?', 'Ừ…', 'Con chào bạn và hỏi tên bạn sẽ hay hơn nhé.', 'alone'),
+          T('🤭', '(Chỉ trỏ, cười với bạn khác)', '…', 'Bạn mới có thể thấy buồn nếu bị chỉ trỏ. Mình tới chào bạn nhé.', 'sad'),
+        ]),
+        alone: talk('mai', 'Mình chưa quen ai ở đây cả.', 'worried', [
+          G('🤗', 'Bạn chơi với nhóm mình nhé! Mình giới thiệu bạn với mọi người.', 'Thật hả? Cảm ơn bạn!', 'Con rủ bạn mới vào nhóm. Thật tốt bụng!', 'bye'),
+          O('🙂', 'Rồi bạn sẽ quen thôi.', 'Ừ… mong là vậy.', 'Con có thể rủ bạn chơi cùng nữa đó!', 'bye'),
+          T('🙄', 'Kệ bạn!', 'Mình buồn quá…', 'Bạn mới đang lo lắng. Mình nói một câu thân thiện nhé.', 'sad'),
+        ]),
+        bye: end('mai', 'Mình vui lắm! Từ nay mình là bạn nhé!'),
+      } },
+
+    { id: 'talk-rubanchoi', mode: 'talk', group: 'school', level: 1, emoji: '🧱', sticker: '🏰',
+      title: 'Rủ bạn chơi cùng', location: 'school', skills: ['share', 'patience'],
+      npcs: { tuan: { name: 'Bạn Tuấn', look: 'boy' } },
+      nodes: {
+        start: talk('tuan', 'Mình đang xếp hình một mình.', 'neutral', [
+          G('🙋', 'Mình chơi cùng bạn được không?', 'Được chứ! Vui quá!', 'Con hỏi “… được không?” rất lịch sự!', 'build'),
+          O('😃', 'Cho mình chơi với!', 'Ừ, được.', 'Con hỏi “Mình chơi cùng được không?” sẽ lịch sự hơn.', 'build'),
+          T('✊', '(Giành lấy đồ chơi)', 'Ơ! Của mình mà!', 'Giành đồ chơi làm bạn giận. Mình hỏi “Mình chơi cùng được không?” nhé.', 'angry'),
+        ]),
+        build: talk('tuan', 'Bạn muốn xây gì nào?', 'happy', [
+          G('🏰', 'Mình cùng xây lâu đài nhé! Bạn xây tháp, mình xây cổng.', 'Ý hay quá!', 'Con rủ bạn cùng làm và chia việc. Tuyệt vời!', 'turn'),
+          O('🤷', 'Gì cũng được.', 'Ừm… vậy xây nhà nhé.', 'Con có thể góp ý một ý tưởng nữa đó.', 'turn'),
+          T('😤', 'Bạn phải làm theo ý mình!', 'Mình cũng muốn góp ý mà…', 'Chơi cùng thì mình lắng nghe ý bạn nữa nhé.', 'sad'),
+        ]),
+        turn: talk('tuan', 'Đến lượt mình đặt khối nhé!', 'happy', [
+          G('🖐️', 'Ừ, bạn đặt đi, rồi đến lượt mình.', 'Cảm ơn bạn! Lâu đài cao quá!', 'Con biết chờ đến lượt. Rất kiên nhẫn!', 'bye'),
+          T('🙅', 'Không, mình đặt hết!', 'Vậy mình không được chơi à?', 'Chơi cùng thì mỗi người một lượt nhé.', 'sad'),
+        ]),
+        bye: end('tuan', 'Chơi với bạn vui quá! Mai mình chơi tiếp nhé!'),
+      } },
+
+    { id: 'talk-muonbut', mode: 'talk', group: 'school', level: 1, emoji: '✏️', sticker: '✏️',
+      title: 'Mượn bút của bạn', location: 'school', skills: ['ask', 'thanks'],
+      npcs: { hoa: { name: 'Bạn Hoa', look: 'girl2' } },
+      nodes: {
+        start: talk('hoa', 'Ơ, bạn quên mang bút chì à?', 'surprised', [
+          G('🙋', 'Hoa ơi, cho mình mượn bút chì được không?', 'Được chứ, bạn cầm đi!', 'Con hỏi mượn rất lịch sự!', 'give'),
+          O('✏️', 'Cho mình mượn bút.', 'Ừ, nè.', 'Thêm “… được không?” sẽ lịch sự hơn nhé.', 'give'),
+          T('🫳', '(Lấy bút của bạn không hỏi)', 'Ơ, bút của mình!', 'Muốn mượn đồ, mình hỏi bạn trước nhé.', 'angry'),
+        ]),
+        give: talk('hoa', 'Bút đây nè.', 'happy', [
+          G('🙏', 'Cảm ơn Hoa nhé! Lát mình trả bạn.', 'Không có gì!', 'Con cảm ơn và hứa trả lại. Rất tốt!', 'back'),
+          T('😶', '(Cầm lấy, không nói gì)', 'Ơ…', 'Được bạn giúp thì mình nói “Cảm ơn bạn” nhé.', 'confused'),
+        ]),
+        back: talk('hoa', 'Hết giờ học rồi!', 'neutral', [
+          G('↩️', 'Mình trả bút nè. Cảm ơn bạn nhiều!', 'Lần sau cần thì bạn cứ mượn nhé!', 'Con nhớ trả lại đồ đã mượn. Thật đáng tin!', 'bye'),
+          T('🎒', '(Bỏ bút vào cặp mang về)', 'Ơ, bút của mình đâu rồi?', 'Mượn đồ thì nhớ trả lại cho bạn nhé.', 'sad'),
+        ]),
+        bye: end('hoa', 'Bạn thật đáng tin. Mình thích chơi với bạn!'),
+      } },
+
+    { id: 'talk-xinloi', mode: 'talk', group: 'school', level: 2, emoji: '💧', sticker: '🩹',
+      title: 'Lỡ làm đổ nước lên vở bạn', location: 'school', skills: ['thanks', 'feelings', 'kind'],
+      npcs: { nam: { name: 'Bạn Nam', look: 'boy2' } },
+      nodes: {
+        start: feel('nam', 'Ôi! Vở của mình ướt hết rồi!', 'sad', ['sad', 'happy', 'surprised', 'scared'], 'sorry',
+          'Đúng rồi, bạn Nam đang buồn vì vở bị ướt.'),
+        sorry: talk('nam', 'Vở của mình…', 'sad', [
+          G('🙇', 'Mình xin lỗi Nam, mình lỡ tay làm đổ. Để mình lau giúp bạn nhé!', 'Ừ… cảm ơn bạn đã xin lỗi.', 'Con nhận lỗi và giúp bạn. Rất dũng cảm!', 'fix', 'neutral'),
+          O('😔', 'Mình xin lỗi.', 'Ừ…', 'Xin lỗi rồi, con có thể giúp bạn lau vở nữa.', 'fix'),
+          T('🙅', 'Đâu phải tại mình!', 'Rõ ràng bạn làm đổ mà!', 'Khi lỡ làm sai, mình nhận lỗi và nói “Mình xin lỗi” nhé.', 'angry'),
+          T('🙈', '(Lén đi chỗ khác)', 'Bạn đi đâu vậy…', 'Đi chỗ khác làm bạn buồn hơn. Mình quay lại xin lỗi bạn nhé.', 'sad'),
+        ]),
+        fix: talk('nam', 'Vở ướt rồi, mình phải làm sao đây?', 'worried', [
+          G('☀️', 'Mình phơi vở cho khô, rồi cùng nói với cô giáo nhé.', 'Ý hay đó! Mình cùng đi nhé.', 'Con nghĩ ra cách sửa lỗi. Thật giỏi!', 'bye'),
+          O('🤷', 'Bạn tự lau đi.', 'Ừm… được.', 'Mình là người làm đổ, mình giúp bạn sửa nhé.', 'bye'),
+        ]),
+        bye: end('nam', 'Cảm ơn bạn. Mình hết buồn rồi!'),
+      } },
+
+    { id: 'talk-anui', mode: 'talk', group: 'school', level: 2, emoji: '🤗', sticker: '🌈',
+      title: 'An ủi bạn bị điểm kém', location: 'school', skills: ['feelings', 'kind'],
+      npcs: { linh: { name: 'Bạn Linh', look: 'girl' } },
+      nodes: {
+        start: feel('linh', 'Hu hu… mình bị điểm kém.', 'sad', ['sad', 'happy', 'angry', 'surprised'], 'comfort'),
+        comfort: talk('linh', 'Mình học mãi mà vẫn sai…', 'sad', [
+          G('🤗', 'Bạn đừng buồn nhé. Lần sau mình cùng ôn bài với bạn!', 'Thật hả? Cảm ơn bạn!', 'Con an ủi và rủ bạn cùng học. Thật tốt bụng!', 'doubt', 'neutral'),
+          O('🙂', 'Thôi đừng khóc.', 'Ừ…', 'Con có thể nói thêm một lời động viên bạn.', 'doubt', 'sad'),
+          T('🤭', 'Haha, bạn bị điểm kém!', 'Hu hu… bạn cười mình…', 'Cười khi bạn buồn sẽ làm bạn đau lòng hơn. Mình nói lời an ủi nhé.', 'sad'),
+        ]),
+        doubt: talk('linh', 'Bạn có nghĩ mình học dốt không?', 'worried', [
+          G('🌟', 'Không đâu! Ai cũng có lúc sai. Bạn vẽ đẹp lắm mà.', 'Bạn nói vậy mình thấy vui hơn!', 'Con nhắc bạn về điều bạn giỏi. Thật tuyệt!', 'bye'),
+          T('😐', 'Ừ, chắc vậy.', 'Hu hu…', 'Câu đó làm bạn buồn hơn. Mình nói một điều tốt về bạn nhé.', 'sad'),
+        ]),
+        bye: end('linh', 'Cảm ơn bạn. Mình sẽ cố gắng hơn!'),
+      } },
+
+    { id: 'talk-sinhnhat', mode: 'talk', group: 'school', level: 1, emoji: '🎈', sticker: '🎁',
+      title: 'Chúc mừng sinh nhật bạn', location: 'school', skills: ['greet', 'thanks', 'share'],
+      npcs: { minh: { name: 'Bạn Minh', look: 'boy' } },
+      nodes: {
+        start: talk('minh', 'Hôm nay là sinh nhật mình đó!', 'happy', [
+          G('🎉', 'Chúc mừng sinh nhật Minh! Chúc bạn luôn vui vẻ!', 'Cảm ơn bạn nhiều!', 'Con chúc mừng bạn thật ấm áp!', 'cake'),
+          O('🙂', 'Ồ, vậy hả.', 'Ừ…', 'Con nói “Chúc mừng sinh nhật bạn!” để bạn vui hơn nhé.', 'cake'),
+          T('😏', 'Sinh nhật mình còn vui hơn!', 'Ơ…', 'Hôm nay là ngày của bạn Minh. Mình chúc mừng bạn nhé.', 'sad'),
+        ]),
+        cake: talk('minh', 'Mình mời bạn ăn bánh kem nè!', 'happy', [
+          G('🍰', 'Cảm ơn Minh! Bánh ngon quá!', 'Hihi, bạn ăn thêm nhé!', 'Con cảm ơn và khen bánh. Bạn Minh vui lắm!', 'bye'),
+          T('🤲', 'Mình muốn miếng to nhất!', 'Ơ… còn các bạn khác nữa mà.', 'Mình nhận phần của mình và để phần cho các bạn nhé.', 'confused'),
+        ]),
+        bye: end('minh', 'Có bạn đến chơi, sinh nhật mình vui hơn nhiều!'),
+      } },
+
+    // ----- Ngoài đường -----
+    { id: 'talk-camon', mode: 'talk', group: 'street', level: 1, emoji: '🧢', sticker: '🙏',
+      title: 'Cảm ơn khi được giúp', location: 'street', skills: ['thanks', 'greet'],
+      npcs: { co: { name: 'Cô đi đường', look: 'woman' } },
+      nodes: {
+        start: talk('co', 'Cháu ơi, cháu đánh rơi mũ này!', 'happy', [
+          G('🙏', 'Dạ cháu cảm ơn cô ạ!', 'Không có gì cháu!', 'Con cảm ơn ngay khi được giúp. Rất lễ phép!', 'bye'),
+          O('🙂', '(Cầm mũ, gật đầu)', 'Ừ…', 'Mình nói thành lời: “Dạ cháu cảm ơn cô ạ” nhé.', 'bye'),
+          T('🫳', '(Giật lấy mũ rồi chạy)', 'Ơ kìa…', 'Cô vừa giúp con. Mình nói “Dạ cháu cảm ơn cô ạ” nhé.', 'confused'),
+        ]),
+        bye: talk('co', 'Cháu đi cẩn thận nhé!', 'happy', [
+          G('👋', 'Dạ, cháu chào cô ạ!', 'Chào cháu ngoan!', 'Con chào tạm biệt thật lễ phép!', 'fin'),
+          O('🙂', 'Dạ.', 'Ừ.', 'Thêm “cháu chào cô ạ” sẽ hay hơn nhé.', 'fin'),
+        ]),
+        fin: end('co', 'Cháu thật lễ phép!'),
+      } },
+
+    { id: 'talk-hoiduong', mode: 'talk', group: 'street', level: 2, emoji: '👮', sticker: '🗺️',
+      title: 'Hỏi đường chú công an', location: 'street', skills: ['ask', 'greet', 'safety'],
+      npcs: { ca: { name: 'Chú công an', look: 'police' } },
+      nodes: {
+        start: talk('ca', 'Chào cháu! Cháu cần chú giúp gì không?', 'happy', [
+          G('🙋', 'Dạ cháu chào chú ạ. Chú cho cháu hỏi thư viện ở đâu ạ?', 'Cháu hỏi lễ phép quá!', 'Con chào và hỏi đường rất rõ ràng!', 'who'),
+          O('🗺️', 'Thư viện ở đâu?', 'À, để chú chỉ nhé.', 'Con nhớ chào chú và nói “Dạ… ạ” nhé.', 'who'),
+          T('🫳', '(Kéo áo chú, không nói gì)', 'Cháu muốn gì nào?', 'Mình nói thành lời: “Dạ chú ơi, cho cháu hỏi…” nhé.'),
+        ]),
+        who: talk('ca', 'Cháu đi thẳng, đến ngã tư thì rẽ phải. Cháu đi cùng ai thế?', 'neutral', [
+          G('👨', 'Dạ cháu đi cùng bố, bố đứng ngay kia ạ.', 'Tốt lắm! Đi cùng người lớn là an toàn.', 'Đúng rồi! Trẻ nhỏ luôn đi cùng người lớn.', 'thanks'),
+          T('🚶', 'Cháu đi một mình ạ.', 'Cháu còn nhỏ, phải đi cùng người lớn nhé.', 'Ra đường, con luôn đi cùng bố mẹ hoặc người lớn trong nhà nhé.', 'worried'),
+        ]),
+        thanks: talk('ca', 'Nhớ đi trên vỉa hè nhé!', 'happy', [
+          G('🙏', 'Dạ cháu cảm ơn chú ạ!', 'Không có gì cháu!', 'Con cảm ơn chú thật lễ phép!', 'bye'),
+          O('🙂', 'Dạ.', 'Ừ.', 'Được chỉ đường thì mình nói “Dạ cháu cảm ơn chú ạ” nhé.', 'bye'),
+        ]),
+        bye: end('ca', 'Khi cần giúp, cháu có thể hỏi chú công an hoặc chú bảo vệ nhé!'),
+      } },
+
+    { id: 'talk-nhuongcho', mode: 'talk', group: 'street', level: 2, emoji: '🚌', sticker: '💺',
+      title: 'Nhường chỗ trên xe buýt', location: 'bus', skills: ['kind', 'feelings'],
+      npcs: { ong: { name: 'Ông cụ', look: 'grandpa' } },
+      nodes: {
+        start: feel('ong', '(Một ông cụ chống gậy bước lên xe. Không còn ghế trống.) Ôi, mỏi chân quá…', 'worried', ['worried', 'happy', 'angry', 'surprised'], 'seat',
+          'Đúng rồi, ông đang lo vì không có chỗ ngồi.'),
+        seat: talk('ong', 'Xe đông quá, không còn ghế…', 'worried', [
+          G('💺', 'Ông ơi, ông ngồi chỗ cháu đi ạ!', 'Cảm ơn cháu ngoan!', 'Con nhường chỗ cho người già. Thật tốt bụng!', 'ask'),
+          O('🧍', '(Đứng dậy nhưng không nói gì)', 'Ồ, cháu nhường ông à? Cảm ơn cháu.', 'Con đã nhường chỗ! Mời ông bằng lời sẽ còn hay hơn nữa.', 'ask', 'happy'),
+          T('😴', '(Giả vờ ngủ)', 'Ôi, mỏi chân quá…', 'Người già đứng lâu sẽ mệt. Mình nhường chỗ cho ông nhé.', 'worried'),
+        ]),
+        ask: talk('ong', 'Cháu đứng có mệt không?', 'happy', [
+          G('✊', 'Dạ không sao ạ, cháu vịn tay cầm chắc rồi ạ.', 'Cháu thật chu đáo!', 'Con trả lời lễ phép và đứng vịn chắc. An toàn lắm!', 'bye'),
+          T('😩', 'Mệt lắm, ông trả ghế cho cháu!', 'Ơ…', 'Mình đã nhường thì để ông ngồi nhé. Con vịn tay cầm cho chắc.', 'confused'),
+        ]),
+        bye: end('ong', 'Cháu thật tốt bụng! Ông cảm ơn cháu.'),
+      } },
+
+    // ----- Biết từ chối & an toàn -----
+    { id: 'talk-nguoila', mode: 'talk', group: 'safety', level: 2, emoji: '🍬', sticker: '🛡️',
+      title: 'Người lạ cho kẹo', location: 'park', skills: ['safety', 'refuse'],
+      npcs: { la: { name: 'Người lạ', look: 'stranger' }, mom: { name: 'Mẹ', look: 'mom' } },
+      nodes: {
+        start: talk('la', 'Bé ơi, chú có nhiều kẹo lắm. Đi với chú ra kia lấy nhé!', 'happy', [
+          G('✋', 'Không! Con không đi với người lạ.', 'Ơ…', 'Con nói “Không!” rất to và rõ. Giỏi lắm!', 'again', 'surprised'),
+          T('🍬', 'Dạ, con đi ạ!', '', 'Khoan đã! Không bao giờ đi theo hay nhận quà của người lạ. Con nói thật to: “Không!” nhé.', 'happy'),
+          T('🤲', '(Đứng lại, cầm kẹo ăn)', '', 'Mình không nhận đồ ăn của người lạ nhé. Con nói “Không!” và tránh xa.', 'happy'),
+        ]),
+        again: talk('la', 'Chú quen bố mẹ cháu mà, đi đi!', 'happy', [
+          G('🏃', 'Không! (Chạy về phía mẹ đang ngồi ở ghế đá)', '', 'Đúng rồi! Nói Không, rồi chạy đến chỗ người lớn tin cậy.', 'tell', 'neutral'),
+          T('🤔', 'Vậy thì con đi ạ.', '', 'Người lạ có thể nói dối là quen bố mẹ. Mình vẫn nói “Không!” và chạy về chỗ mẹ nhé.', 'happy'),
+        ]),
+        tell: talk('mom', 'Có chuyện gì vậy con?', 'worried', [
+          G('🗣️', 'Mẹ ơi, có chú lạ rủ con đi và cho kẹo ạ.', 'Con làm đúng lắm! Cảm ơn con đã kể cho mẹ.', 'Kể ngay với người lớn tin cậy. Con thật dũng cảm!', 'bye', 'happy'),
+          T('🤐', 'Không có gì ạ.', 'Con kể cho mẹ nghe nhé, mẹ luôn lắng nghe con.', 'Gặp chuyện lạ, mình luôn kể với bố mẹ hoặc thầy cô nhé.', 'worried'),
+        ]),
+        bye: end('mom', 'Con nhớ nhé: Nói KHÔNG – Chạy đi – Kể với người lớn!'),
+      } },
+
+    { id: 'talk-tuchoi', mode: 'talk', group: 'safety', level: 3, emoji: '🙅', sticker: '✋',
+      title: 'Biết từ chối việc sai', location: 'school', skills: ['refuse', 'feelings'],
+      npcs: { khoa: { name: 'Bạn Khoa', look: 'boy2' } },
+      nodes: {
+        start: talk('khoa', 'Này, mình giấu bút màu của bạn Lan đi cho vui đi!', 'happy', [
+          G('🙅', 'Không, làm vậy bạn Lan sẽ buồn. Mình không làm đâu.', 'Ờ… cũng đúng.', 'Con từ chối và nói rõ lý do. Rất giỏi!', 'push', 'neutral'),
+          O('✋', 'Mình không muốn.', 'Sao vậy?', 'Con đã từ chối! Nói thêm lý do: “bạn Lan sẽ buồn” nhé.', 'push'),
+          T('😈', 'Ừ, giấu đi!', 'Hihi…', 'Giấu đồ của bạn làm bạn buồn. Mình có thể nói “Không!” nhé.', 'happy'),
+        ]),
+        push: talk('khoa', 'Bạn nhát thế! Làm đi mà!', 'angry', [
+          G('⚽', 'Mình không làm. Mình chơi trò khác nhé!', 'Ừ… thôi, chơi đá cầu vậy.', 'Bị rủ nhiều lần, con vẫn nói Không và rủ trò khác. Tuyệt!', 'bye', 'neutral'),
+          G('👩‍🏫', 'Không. Nếu bạn làm, mình sẽ nói với cô giáo.', 'Thôi được rồi, mình không giấu nữa.', 'Con kiên quyết và biết tìm người lớn giúp. Giỏi lắm!', 'bye', 'neutral'),
+          T('😔', 'Thôi được rồi…', 'Hihi, đi nào!', 'Bạn ép mình cũng không sao, mình vẫn có quyền nói “Không”.', 'happy'),
+        ]),
+        bye: end('khoa', 'Bạn nói đúng. Mình không nên trêu bạn Lan.', 'neutral'),
+      } },
+
+    { id: 'talk-bitreu', mode: 'talk', group: 'safety', level: 3, emoji: '😣', sticker: '💪',
+      title: 'Khi bị bạn trêu', location: 'school', skills: ['feelings', 'refuse', 'ask'],
+      npcs: { bao: { name: 'Bạn Bảo', look: 'boy' }, me: { name: 'Con', look: 'me' }, co: { name: 'Cô giáo', look: 'teacher' } },
+      nodes: {
+        start: talk('bao', 'Haha, nhìn cái cặp của bạn kìa, xấu quá!', 'happy', [
+          G('💬', '(Hít thở thật sâu trước khi nói)', '', 'Hít thở giúp mình bình tĩnh. Rất tốt!', 'feel', 'happy'),
+          O('😶', '(Đứng im)', '', 'Được rồi. Mình nghĩ xem mình đang thấy thế nào nhé.', 'feel', 'happy'),
+          T('🤜', '(Đẩy bạn ngã)', 'Ui da!', 'Đánh, đẩy bạn có thể làm bạn đau. Mình hít thở và nói bằng lời nhé.', 'scared'),
+        ]),
+        feel: talk('me', 'Khi bị trêu, con cảm thấy thế nào?', 'sad', [
+          G('😢', 'Con thấy buồn.', '', 'Con nói rõ được cảm xúc của mình. Giỏi lắm!', 'say', 'sad'),
+          G('😠', 'Con thấy giận.', '', 'Giận là bình thường. Mình nói ra bằng lời, không đánh bạn.', 'say', 'angry'),
+          T('😊', 'Con thấy vui.', '', 'Bị trêu thường làm mình buồn hoặc giận. Không sao, con nói thật cảm xúc nhé.', 'sad'),
+        ]),
+        say: talk('bao', 'Cặp xấu! Cặp xấu!', 'happy', [
+          G('🗣️', 'Bạn nói vậy làm mình buồn. Bạn dừng lại nhé!', 'Ơ… mình chỉ đùa thôi.', 'Con nói rõ cảm xúc và bảo bạn dừng lại. Rất dũng cảm!', 'still', 'surprised'),
+          T('😝', 'Cặp bạn còn xấu hơn!', 'Hứ! Xấu hơn!', 'Trêu lại sẽ làm mọi chuyện tệ hơn. Mình nói “Bạn dừng lại nhé!”', 'angry'),
+        ]),
+        still: talk('bao', 'Đùa tí mà, cặp xấu hoắc!', 'happy', [
+          G('👩‍🏫', 'Mình sẽ nói với cô giáo.', '', 'Bạn vẫn trêu thì mình tìm thầy cô giúp. Đúng rồi!', 'teacher', 'surprised'),
+          O('🚶', '(Đi chỗ khác chơi)', '', 'Tránh xa cũng được. Con nên kể với thầy cô nữa nhé.', 'teacher'),
+        ]),
+        teacher: talk('co', 'Có chuyện gì vậy con?', 'neutral', [
+          G('🙋', 'Thưa cô, bạn Bảo cứ trêu cặp của con, con buồn lắm ạ.', 'Cảm ơn con đã kể với cô. Cô sẽ nói chuyện với bạn.', 'Con kể rõ chuyện gì xảy ra và con cảm thấy thế nào. Tuyệt vời!', 'bye'),
+          T('🤐', 'Dạ không có gì ạ.', 'Trông con buồn quá. Con kể cô nghe nhé?', 'Kể với thầy cô không phải là mách lẻo. Đó là cách nhờ người lớn giúp đỡ.', 'worried'),
+        ]),
+        bye: end('bao', 'Mình xin lỗi bạn. Mình không trêu nữa.', 'sad'),
+      } },
+
+    // ----- Cảm xúc của mình -----
+    { id: 'talk-noivoime', mode: 'talk', group: 'feelings', level: 2, emoji: '💗', sticker: '🫶',
+      title: 'Nói với mẹ khi buồn, lo', location: 'home', skills: ['feelings', 'ask'],
+      npcs: { mom: { name: 'Mẹ', look: 'mom' }, me: { name: 'Con', look: 'me' } },
+      nodes: {
+        start: talk('mom', 'Con sao thế? Trông con không vui.', 'worried', [
+          G('🗣️', 'Mẹ ơi, con đang lo vì mai con phải hát trước lớp ạ.', 'Cảm ơn con đã kể cho mẹ. Lo lắng là bình thường mà.', 'Con nói rõ mình đang lo chuyện gì. Rất dũng cảm!', 'face', 'neutral'),
+          O('🙂', 'Con không sao.', 'Mẹ thấy con hơi buồn. Con kể mẹ nghe được không?', 'Con có thể kể cho mẹ biết con đang thấy thế nào.', 'face', 'worried'),
+          T('🚪', '(Đóng cửa, khóc một mình)', 'Con ơi, mẹ ở đây nè…', 'Buồn hay lo, mình kể với bố mẹ nhé. Bố mẹ luôn muốn lắng nghe con.', 'sad'),
+        ]),
+        face: feel('me', 'Khi lo lắng, khuôn mặt của con trông thế nào?', 'worried', ['worried', 'happy', 'angry', 'surprised'], 'practice',
+          'Đúng rồi! Lông mày nhíu lại, miệng méo méo – đó là lo lắng.'),
+        practice: talk('mom', 'Mình cùng tập hát ở nhà nhé. Con muốn tập không?', 'happy', [
+          G('🎤', 'Dạ con muốn ạ! Mẹ nghe con hát nhé.', 'Con hát hay lắm!', 'Con dám thử. Thật dũng cảm!', 'after'),
+          O('😕', 'Dạ… con hơi ngại.', 'Không sao, mình hát nhỏ thôi nhé.', 'Ngại cũng không sao. Mình tập từng chút một.', 'after'),
+        ]),
+        after: talk('mom', 'Con thấy thế nào rồi?', 'happy', [
+          G('😊', 'Con thấy đỡ lo hơn rồi. Con cảm ơn mẹ ạ!', 'Mẹ luôn ở bên con!', 'Kể với mẹ giúp con nhẹ lòng hơn. Tuyệt vời!', 'bye'),
+          O('🙂', 'Con vẫn hơi lo.', 'Không sao, mai mẹ sẽ cổ vũ con.', 'Nói thật cảm xúc là rất tốt!', 'bye'),
+        ]),
+        bye: end('mom', 'Khi buồn hay lo, con cứ kể với bố mẹ nhé. Bố mẹ luôn lắng nghe con!'),
+      } },
   ];
 
   window.TT_DATA = {
